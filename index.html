@@ -1,0 +1,4130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT智慧城市模擬器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-dark: #0a192f;
+            --secondary-dark: #112240;
+            --accent-blue: #64ffda;
+            --accent-light-blue: #8ae9ff;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 導航欄樣式 */
+        nav {
+            background-color: rgba(10, 25, 47, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent-blue);
+            background-color: rgba(100, 255, 218, 0.1);
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            width: 80%;
+            height: 2px;
+            background-color: var(--accent-blue);
+        }
+        
+        /* 行動裝置漢堡選單 */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* 頁面樣式 */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 主頁樣式 */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(135deg, rgba(17, 34, 64, 0.9) 0%, rgba(10, 25, 47, 0.9) 100%);
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-light-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: rgba(100, 255, 218, 0.1);
+            color: var(--accent-blue);
+            padding: 0.8rem 2rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid var(--accent-blue);
+            transition: var(--transition);
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            background-color: rgba(100, 255, 218, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(100, 255, 218, 0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: var(--primary-dark);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-light-blue);
+        }
+        
+        .btn-small {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* 操作指南樣式 */
+        .guide-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .guide-step {
+            background-color: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            transition: var(--transition);
+            position: relative;
+            counter-increment: step-counter;
+        }
+        
+        .guide-step:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .guide-step::before {
+            content: counter(step-counter);
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-blue);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(100, 255, 218, 0.3);
+        }
+        
+        .guide-step h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+        }
+        
+        .guide-step p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+        
+        .step-tip {
+            background-color: rgba(100, 255, 218, 0.1);
+            padding: 0.8rem;
+            border-radius: calc(var(--border-radius) - 2px);
+            margin-top: 1rem;
+            border-left: 3px solid var(--accent-blue);
+        }
+        
+        .step-tip h4 {
+            color: var(--accent-light-blue);
+            margin-bottom: 0.3rem;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .feature-card {
+            background-color: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            transition: var(--transition);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+        
+        /* 玩法說明樣式 */
+        .play-guide {
+            background-color: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            margin: 2rem 0;
+        }
+        
+        .play-guide h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .play-guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .play-item {
+            background-color: rgba(10, 25, 47, 0.7);
+            padding: 1.5rem;
+            border-radius: calc(var(--border-radius) - 2px);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .play-item h4 {
+            color: var(--accent-light-blue);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .play-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* 城市管理頁面樣式 */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .section-intro {
+            background-color: rgba(17, 34, 64, 0.7);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--accent-blue);
+            margin-bottom: 2rem;
+        }
+        
+        .section-intro h3 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        
+        .city-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 992px) {
+            .city-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .city-map {
+            background-color: var(--secondary-dark);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 10px;
+            height: 100%;
+            margin-top: 1rem;
+        }
+        
+        .grid-cell {
+            background-color: rgba(10, 25, 47, 0.5);
+            border-radius: 4px;
+            border: 1px dashed rgba(100, 255, 218, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+            position: relative;
+            min-height: 60px;
+        }
+        
+        .grid-cell:hover {
+            background-color: rgba(100, 255, 218, 0.05);
+            cursor: pointer;
+        }
+        
+        .grid-cell.occupied {
+            border-style: solid;
+            border-color: var(--accent-blue);
+        }
+        
+        .grid-cell.hover {
+            background-color: rgba(100, 255, 218, 0.1);
+            border-color: var(--accent-blue);
+        }
+        
+        .grid-cell.error {
+            border-color: var(--danger);
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        
+        .sensor {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: move;
+            position: relative;
+            z-index: 10;
+            transition: var(--transition);
+        }
+        
+        .sensor:hover {
+            transform: scale(1.1);
+            z-index: 20;
+        }
+        
+        .sensor.temperature {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+        
+        .sensor.traffic {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+        
+        .sensor.energy {
+            background: linear-gradient(135deg, #ffe66d, #f9c74f);
+        }
+        
+        .sensor.security {
+            background: linear-gradient(135deg, #9d4edd, #7b2cbf);
+        }
+        
+        .sensor.water {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        }
+        
+        .sensor.air {
+            background: linear-gradient(135deg, #2a9d8f, #1d7876);
+        }
+        
+        .sensor.waste {
+            background: linear-gradient(135deg, #f77f00, #d62828);
+        }
+        
+        .sensor-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 0.7rem;
+            color: var(--accent-light-blue);
+            white-space: nowrap;
+            z-index: 5;
+            background-color: rgba(10, 25, 47, 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .sensor-info {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--secondary-dark);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--accent-blue);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 30;
+            display: none;
+        }
+        
+        .sensor:hover .sensor-info {
+            display: block;
+        }
+        
+        .controls-panel {
+            background-color: var(--secondary-dark);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .sensor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .sensor-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sensor-list::-webkit-scrollbar-track {
+            background: rgba(10, 25, 47, 0.5);
+            border-radius: 3px;
+        }
+        
+        .sensor-list::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 3px;
+        }
+        
+        .sensor-item {
+            background-color: rgba(10, 25, 47, 0.7);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: move;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        
+        .sensor-item:hover {
+            border-color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+        
+        .sensor-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        /* 數據分析頁面樣式 */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .chart-box {
+            background-color: var(--secondary-dark);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart {
+            height: 300px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 1rem 0;
+        }
+        
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent-blue), var(--accent-light-blue));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: var(--transition);
+            min-width: 40px;
+        }
+        
+        .bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+        
+        /* 效能指標樣式 */
+        .performance-metrics, .sensor-distribution, .prediction-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .metric, .distribution-item, .prediction-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .metric-label, .distribution-label, .prediction-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .metric-value, .distribution-value, .prediction-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+        
+        .metric-bar, .distribution-bar, .prediction-bar {
+            height: 8px;
+            background-color: rgba(10, 25, 47, 0.7);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .metric-fill, .prediction-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-light-blue));
+            border-radius: 4px;
+        }
+        
+        .distribution-fill.temperature {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+        }
+        
+        .distribution-fill.traffic {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+        }
+        
+        .distribution-fill.energy {
+            background: linear-gradient(90deg, #ffe66d, #f9c74f);
+        }
+        
+        .distribution-fill.security {
+            background: linear-gradient(90deg, #9d4edd, #7b2cbf);
+        }
+        
+        /* 系統優化頁面樣式 */
+        .optimization-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .panel {
+            background-color: var(--secondary-dark);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .budget-meter {
+            height: 20px;
+            background-color: rgba(10, 25, 47, 0.7);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .budget-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-light-blue));
+            border-radius: 10px;
+            width: 65%;
+            transition: width 1s ease;
+        }
+        
+        .budget-details, .energy-status, .optimization-tips, .prediction-details {
+            margin-top: 1.5rem;
+        }
+        
+        .budget-item, .energy-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .budget-item.total, .energy-item:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+        
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: rgba(10, 25, 47, 0.7);
+            border-radius: var(--border-radius);
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .alert:hover {
+            transform: translateX(5px);
+            background-color: rgba(10, 25, 47, 0.9);
+        }
+        
+        .alert.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .alert.danger {
+            border-left-color: var(--danger);
+        }
+        
+        .alert.info {
+            border-left-color: var(--accent-blue);
+        }
+        
+        /* 通知樣式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 400px;
+        }
+        
+        .notification.success {
+            background-color: rgba(76, 175, 80, 0.95);
+            border-left: 4px solid #2e7d32;
+        }
+        
+        .notification.warning {
+            background-color: rgba(255, 152, 0, 0.95);
+            border-left: 4px solid #ef6c00;
+        }
+        
+        .notification.danger {
+            background-color: rgba(244, 67, 54, 0.95);
+            border-left: 4px solid #c62828;
+        }
+        
+        .notification.info {
+            background-color: rgba(100, 255, 218, 0.95);
+            color: var(--primary-dark);
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 1rem;
+            opacity: 0.8;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+        
+        /* 進度條樣式 */
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: rgba(10, 25, 47, 0.7);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-fill.good {
+            background: linear-gradient(90deg, var(--success), #81c784);
+        }
+        
+        .progress-fill.warning {
+            background: linear-gradient(90deg, var(--warning), #ffb74d);
+        }
+        
+        .progress-fill.danger {
+            background: linear-gradient(90deg, var(--danger), #e57373);
+        }
+        
+        /* 頁腳樣式 */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(100, 255, 218, 0.1);
+            font-size: 0.9rem;
+        }
+        
+        .copyright {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(100, 255, 218, 0.1);
+            color: var(--accent-light-blue);
+        }
+        
+        /* 模態框樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .close-modal:hover {
+            color: var(--accent-blue);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: rgba(10, 25, 47, 0.7);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        /* 遊戲模式樣式 */
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .mode-card {
+            background-color: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mode-card.active {
+            border-color: var(--accent-blue);
+            background-color: rgba(100, 255, 218, 0.05);
+        }
+        
+        .mode-card h4 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mode-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--primary-dark);
+                flex-direction: column;
+                padding: 1rem;
+                border-top: 1px solid rgba(100, 255, 218, 0.2);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .charts-container, .optimization-panels {
+                grid-template-columns: 1fr;
+            }
+            
+            .city-map {
+                min-height: 400px;
+            }
+            
+            .map-grid {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+            }
+            
+            .notification {
+                max-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+            
+            .guide-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+        
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--secondary-dark);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: var(--border-radius);
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--accent-blue);
+            font-size: 0.9rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* 載入動畫 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(100, 255, 218, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 挑戰任務樣式 */
+        .challenge-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .challenge-card {
+            background-color: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .challenge-card.completed {
+            border-color: var(--success);
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+        
+        .challenge-card h4 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .challenge-card .reward {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+        
+        .challenge-progress {
+            margin-top: 1rem;
+        }
+        
+        .challenge-progress .progress-label {
+            font-size: 0.8rem;
+        }
+        
+        /* 工具面板樣式 */
+        .tool-panel {
+            background-color: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .tool-item {
+            background-color: rgba(10, 25, 47, 0.7);
+            padding: 1rem;
+            border-radius: calc(var(--border-radius) - 2px);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tool-item:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-3px);
+        }
+        
+        .tool-item i {
+            color: var(--accent-blue);
+            font-size: 1.2rem;
+        }
+        
+        .tool-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .tool-item.disabled:hover {
+            transform: none;
+            border-color: rgba(100, 255, 218, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-city"></i>
+            <span>IoT智慧城市模擬器</span>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="#" class="nav-link active" data-page="home">首頁</a>
+            <a href="#" class="nav-link" data-page="city">城市管理</a>
+            <a href="#" class="nav-link" data-page="data">數據分析</a>
+            <a href="#" class="nav-link" data-page="optimization">系統優化</a>
+        </div>
+    </nav>
+    
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 首頁 -->
+        <div id="home-page" class="page active">
+            <div class="hero">
+                <h1>物聯網智慧城市模擬器</h1>
+                <p>這是一個互動式模擬平台，讓您體驗如何部署和管理物聯網感測器，以優化現代城市的運作。部署感測器、監控實時數據、管理預算，並防止系統故障。</p>
+                <div>
+                    <button class="btn btn-primary" id="start-simulation">開始模擬</button>
+                    <button class="btn" id="guide-btn">平台操作指南</button>
+                </div>
+            </div>
+            
+            <div class="guide-container" id="guide-container" style="display: none;">
+                <div class="guide-step">
+                    <h3>步驟一：了解基本概念</h3>
+                    <p>智慧城市通過物聯網感測器收集數據，優化城市運作。本模擬器讓您體驗從零開始建設智慧城市的過程。</p>
+                    <div class="step-tip">
+                        <h4>📚 學習要點</h4>
+                        <p>• 物聯網感測器類型與功能</p>
+                        <p>• 城市區域劃分與感測器佈局</p>
+                        <p>• 數據收集與分析的重要性</p>
+                    </div>
+                </div>
+                
+                <div class="guide-step">
+                    <h3>步驟二：部署感測器</h3>
+                    <p>在「城市管理」頁面，拖放感測器到城市地圖上。不同區域需要不同類型的感測器來收集數據。</p>
+                    <div class="step-tip">
+                        <h4>🎯 部署技巧</h4>
+                        <p>• 住宅區：部署溫度、能源感測器</p>
+                        <p>• 商業區：部署交通、安全感測器</p>
+                        <p>• 工業區：部署能源、空氣品質感測器</p>
+                    </div>
+                </div>
+                
+                <div class="guide-step">
+                    <h3>步驟三：監控數據</h3>
+                    <p>在「數據分析」頁面，查看各種感測器收集的數據。圖表和指標幫助您了解城市運作狀態。</p>
+                    <div class="step-tip">
+                        <h4>📊 監控重點</h4>
+                        <p>• 能源消耗趨勢圖</p>
+                        <p>• 系統效能指標</p>
+                        <p>• 感測器分佈統計</p>
+                    </div>
+                </div>
+                
+                <div class="guide-step">
+                    <h3>步驟四：系統優化</h3>
+                    <p>在「系統優化」頁面，根據數據分析結果進行系統調整。平衡預算、能源消耗與系統效能。</p>
+                    <div class="step-tip">
+                        <h4>⚙️ 優化策略</h4>
+                        <p>• 調整感測器取樣率</p>
+                        <p>• 重新分配預算</p>
+                        <p>• 處理系統警報</p>
+                    </div>
+                </div>
+                
+                <div class="guide-step">
+                    <h3>步驟五：挑戰與進階玩法</h3>
+                    <p>完成基本操作後，嘗試各種挑戰任務和進階玩法，提升您的城市管理水平。</p>
+                    <div class="step-tip">
+                        <h4>🚀 進階挑戰</h4>
+                        <p>• 預算限制模式</p>
+                        <p>• 能源效率挑戰</p>
+                        <p>• 災難應對模擬</p>
+                    </div>
+                </div>
+                
+                <div class="guide-step">
+                    <h3>步驟六：工具與資源</h3>
+                    <p>利用各種工具和資源來提升管理效率。每個頁面都有專用工具幫助您更好地管理城市。</p>
+                    <div class="step-tip">
+                        <h4>🛠️ 可用工具</h4>
+                        <p>• 感測器配置工具</p>
+                        <p>• 數據導出功能</p>
+                        <p>• 效能預測工具</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-microchip"></i>
+                    <h3>感測器部署</h3>
+                    <p>使用拖放方式在虛擬城市中部署各種感測器，包括溫度、交通、能源、安全、水質、空氣品質和廢物管理等感測器。</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>實時數據監控</h3>
+                    <p>通過互動式圖表監控來自所有感測器的實時數據，分析城市運作效能。數據會根據感測器狀態動態更新。</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>系統優化</h3>
+                    <p>平衡預算、能源消耗與系統效率，防止超載並應對突發事件挑戰。提供具體的優化建議和效能預測。</p>
+                </div>
+            </div>
+            
+            <div class="play-guide">
+                <h3><i class="fas fa-gamepad"></i> 平台玩法介紹</h3>
+                <div class="play-guide-grid">
+                    <div class="play-item">
+                        <h4><i class="fas fa-bullseye"></i> 挑戰模式</h4>
+                        <p>在有限預算和時間內完成特定目標，如降低能源消耗20%或提升系統效能至90%以上。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fasfa-trophy"></i> 成就系統</h4>
+                        <p>完成特定任務獲得成就，如「節能大師」、「高效能城市」等稱號。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-users"></i> 多人協作</h4>
+                        <p>模擬團隊合作管理城市，不同角色負責不同區域，需要協調合作達成目標。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-exclamation-triangle"></i> 災難模擬</h4>
+                        <p>模擬自然災害或系統故障，考驗您的應急處理能力和系統韌性。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-modes">
+                <div class="mode-card" data-mode="easy">
+                    <h4><i class="fas fa-seedling"></i> 初學者模式</h4>
+                    <p>預算充足，感測器維護成本低，適合學習基本操作和概念。</p>
+                </div>
+                <div class="mode-card active" data-mode="normal">
+                    <h4><i class="fas fa-balance-scale"></i> 標準模式</h4>
+                    <p>平衡的預算和挑戰，適合已經掌握基本操作的玩家。</p>
+                </div>
+                <div class="mode-card" data-mode="hard">
+                    <h4><i class="fas fa-skull-crossbones"></i> 專家模式</h4>
+                    <p>預算緊張，系統容易故障，適合尋求挑戰的進階玩家。</p>
+                </div>
+                <div class="mode-card" data-mode="creative">
+                    <h4><i class="fas fa-palette"></i> 創意模式</h4>
+                    <p>無預算限制，自由設計理想智慧城市，專注於規劃與設計。</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>版權聲明 © 2026 Create By 【 Sam.T 】</p>
+                <p>Copyright © 2026 Sam.T. All rights reserved.</p>
+                <p>版權所有© 2026 Sam.T</p>
+            </div>
+        </div>
+        
+        <!-- 城市管理頁面 -->
+        <div id="city-page" class="page">
+            <div class="dashboard-header">
+                <h2>智慧城市管理面板</h2>
+                <div>
+                    <button class="btn" id="reset-city">重置城市</button>
+                    <button class="btn btn-primary" id="add-sensor-btn">新增感測器</button>
+                </div>
+            </div>
+            
+            <div class="section-intro">
+                <h3><i class="fas fa-map-marked-alt"></i> 城市管理指南</h3>
+                <p>在此頁面部署和管理您的感測器網絡。拖放感測器到地圖上，點擊感測器查看詳情，拖動可移動位置。不同區域需要不同類型的感測器以獲得最佳效果。</p>
+            </div>
+            
+            <div class="play-guide">
+                <h3><i class="fas fa-lightbulb"></i> 城市管理玩法</h3>
+                <div class="play-guide-grid">
+                    <div class="play-item">
+                        <h4><i class="fas fa-chess-board"></i> 區域規劃</h4>
+                        <p>將城市劃分為住宅、商業、工業等區域，每個區域部署相應的感測器。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-project-diagram"></i> 網絡優化</h4>
+                        <p>確保感測器覆蓋均勻，避免重複部署，優化數據收集效率。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-money-bill-wave"></i> 成本控制</h4>
+                        <p>在預算內選擇性價比最高的感測器組合，平衡成本與效能。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <h3>已部署感測器</h3>
+                    <div class="value" id="sensor-count">8</div>
+                </div>
+                <div class="stat-card">
+                    <h3>系統效能</h3>
+                    <div class="value" id="system-efficiency">87%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>預算使用</h3>
+                    <div class="value" id="budget-usage">65%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>能源消耗</h3>
+                    <div class="value" id="energy-consumption">2.4kW</div>
+                </div>
+            </div>
+            
+            <div class="city-layout">
+                <div class="city-map">
+                    <h3>城市地圖 <span class="tooltip">ℹ️
+                        <span class="tooltiptext">拖放感測器到地圖上，點擊感測器查看詳情，拖動可移動位置</span>
+                    </span></h3>
+                    <p class="text-secondary">拖放感測器到地圖上的任何位置（點擊已部署感測器可查看詳情，拖動可移動位置）</p>
+                    
+                    <div class="map-grid" id="city-grid">
+                        <!-- 網格單元將由JavaScript生成 -->
+                    </div>
+                </div>
+                
+                <div class="controls-panel">
+                    <h3>可用感測器</h3>
+                    <p class="text-secondary">拖動感測器到城市地圖上</p>
+                    
+                    <div class="sensor-list" id="sensor-list">
+                        <div class="sensor-item" data-type="temperature" data-cost="120" data-energy="0.3">
+                            <div class="sensor-icon temperature">
+                                <i class="fas fa-thermometer-half"></i>
+                            </div>
+                            <div>
+                                <h4>溫度感測器</h4>
+                                <p>成本: $120 | 能耗: 0.3kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="traffic" data-cost="200" data-energy="0.5">
+                            <div class="sensor-icon traffic">
+                                <i class="fas fa-traffic-light"></i>
+                            </div>
+                            <div>
+                                <h4>交通感測器</h4>
+                                <p>成本: $200 | 能耗: 0.5kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="energy" data-cost="180" data-energy="0.4">
+                            <div class="sensor-icon energy">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div>
+                                <h4>能源感測器</h4>
+                                <p>成本: $180 | 能耗: 0.4kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="security" data-cost="250" data-energy="0.6">
+                            <div class="sensor-icon security">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h4>安全監控</h4>
+                                <p>成本: $250 | 能耗: 0.6kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="water" data-cost="220" data-energy="0.4">
+                            <div class="sensor-icon water">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                            <div>
+                                <h4>水質監測</h4>
+                                <p>成本: $220 | 能耗: 0.4kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="air" data-cost="190" data-energy="0.35">
+                            <div class="sensor-icon air">
+                                <i class="fas fa-wind"></i>
+                            </div>
+                            <div>
+                                <h4>空氣品質</h4>
+                                <p>成本: $190 | 能耗: 0.35kW</p>
+                            </div>
+                        </div>
+                        <div class="sensor-item" data-type="waste" data-cost="170" data-energy="0.3">
+                            <div class="sensor-icon waste">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <div>
+                                <h4>廢物管理</h4>
+                                <p>成本: $170 | 能耗: 0.3kW</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="budget-info" style="margin-top: 2rem;">
+                        <h4>預算狀態</h4>
+                        <div class="budget-meter">
+                            <div class="budget-fill" id="budget-fill"></div>
+                        </div>
+                        <p>已使用: <span id="budget-used">$1,950</span> / 總預算: $<span id="total-budget">3,000</span></p>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>系統負載</span>
+                            <span id="system-load">65%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="system-load-bar" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="challenge-container">
+                <div class="challenge-card" id="challenge1">
+                    <h4>城市規劃師 <span class="reward">獎勵: $500</span></h4>
+                    <p>在每個區域至少部署1個感測器（住宅、商業、工業、公園、交通）</p>
+                    <div class="challenge-progress">
+                        <div class="progress-label">
+                            <span>進度</span>
+                            <span id="challenge1-progress">2/5</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="challenge-card" id="challenge2">
+                    <h4>節能專家 <span class="reward">獎勵: $300</span></h4>
+                    <p>將總能源消耗控制在2.0kW以下</p>
+                    <div class="challenge-progress">
+                        <div class="progress-label">
+                            <span>進度</span>
+                            <span id="challenge2-progress">2.4/2.0kW</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="challenge-card completed" id="challenge3">
+                    <h4>感測器大師 <span class="reward">已完成 ✓</span></h4>
+                    <p>部署至少5個不同類型的感測器</p>
+                    <div class="challenge-progress">
+                        <div class="progress-label">
+                            <span>進度</span>
+                            <span>5/5</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill good" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-panel">
+                <h3><i class="fas fa-tools"></i> 城市管理工具</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" id="auto-deploy">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <h4>智能部署</h4>
+                            <p>AI推薦最佳感測器位置</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="sensor-config">
+                        <i class="fas fa-sliders-h"></i>
+                        <div>
+                            <h4>批量配置</h4>
+                            <p>一次調整多個感測器設定</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="heatmap">
+                        <i class="fas fa-fire"></i>
+                        <div>
+                            <h4>熱力圖分析</h4>
+                            <p>查看數據收集熱點區域</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="export-map">
+                        <i class="fas fa-download"></i>
+                        <div>
+                            <h4>導出地圖</h4>
+                            <p>保存當前城市佈局</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 數據分析頁面 -->
+        <div id="data-page" class="page">
+            <div class="dashboard-header">
+                <h2>數據分析儀表板</h2>
+                <div>
+                    <button class="btn" id="refresh-data">刷新數據</button>
+                    <button class="btn btn-primary" id="export-data">導出數據</button>
+                </div>
+            </div>
+            
+            <div class="section-intro">
+                <h3><i class="fas fa-chart-bar"></i> 數據分析指南</h3>
+                <p>在此頁面監控和分析您的城市數據。使用圖表了解趨勢，查看效能指標，並根據數據做出明智決策。</p>
+            </div>
+            
+            <div class="play-guide">
+                <h3><i class="fas fa-chart-pie"></i> 數據分析玩法</h3>
+                <div class="play-guide-grid">
+                    <div class="play-item">
+                        <h4><i class="fas fa-search"></i> 趨勢發現</h4>
+                        <p>分析數據趨勢，預測未來變化，提前部署應對措施。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-exclamation-circle"></i> 異常檢測</h4>
+                        <p>識別數據異常，及時發現系統問題或感測器故障。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-bullseye"></i> 目標追蹤</h4>
+                        <p>設定效能目標，追蹤進度，確保城市運作達到預期標準。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-box">
+                    <div class="chart-header">
+                        <h3>感測器數據比較</h3>
+                        <select id="data-period">
+                            <option value="day">過去24小時</option>
+                            <option value="week">過去7天</option>
+                            <option value="month">過去30天</option>
+                        </select>
+                    </div>
+                    <div class="chart" id="sensor-chart">
+                        <!-- 圖表將由JavaScript生成 -->
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-header">
+                        <h3>能源消耗趨勢</h3>
+                        <div>
+                            <button class="btn btn-small" id="energy-day">日</button>
+                            <button class="btn btn-small" id="energy-week">週</button>
+                            <button class="btn btn-small active" id="energy-month">月</button>
+                        </div>
+                    </div>
+                    <div class="chart" id="energy-chart">
+                        <!-- 圖表將由JavaScript生成 -->
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-header">
+                        <h3>系統效能指標</h3>
+                    </div>
+                    <div class="performance-metrics">
+                        <div class="metric">
+                            <div class="metric-label">回應時間</div>
+                            <div class="metric-value" id="response-time">142ms</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="response-bar" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">數據準確率</div>
+                            <div class="metric-value" id="accuracy-rate">94.2%</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="accuracy-bar" style="width: 94%"></div>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">系統可用性</div>
+                            <div class="metric-value" id="availability-rate">99.7%</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="availability-bar" style="width: 99%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-header">
+                        <h3>感測器分佈</h3>
+                    </div>
+                    <div class="sensor-distribution">
+                        <div class="distribution-item">
+                            <div class="distribution-label">溫度感測器</div>
+                            <div class="distribution-value" id="temp-count">3</div>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill temperature" id="temp-bar" style="width: 37.5%"></div>
+                            </div>
+                        </div>
+                        <div class="distribution-item">
+                            <div class="distribution-label">交通感測器</div>
+                            <div class="distribution-value" id="traffic-count">2</div>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill traffic" id="traffic-bar" style="width: 25%"></div>
+                            </div>
+                        </div>
+                        <div class="distribution-item">
+                            <div class="distribution-label">能源感測器</div>
+                            <div class="distribution-value" id="energy-count">2</div>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill energy" id="energy-bar" style="width: 25%"></div>
+                            </div>
+                        </div>
+                        <div class="distribution-item">
+                            <div class="distribution-label">安全監控</div>
+                            <div class="distribution-value" id="security-count">1</div>
+                            <div class="distribution-bar">
+                                <div class="distribution-fill security" id="security-bar" style="width: 12.5%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-panel">
+                <h3><i class="fas fa-chart-line"></i> 數據分析工具</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" id="predictive-analytics">
+                        <i class="fas fa-crystal-ball"></i>
+                        <div>
+                            <h4>預測分析</h4>
+                            <p>基於歷史數據預測未來趨勢</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="correlation-analysis">
+                        <i class="fas fa-link"></i>
+                        <div>
+                            <h4>關聯分析</h4>
+                            <p>分析不同數據間的相關性</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="anomaly-detection">
+                        <i class="fas fa-radar"></i>
+                        <div>
+                            <h4>異常檢測</h4>
+                            <p>自動檢測數據異常模式</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="custom-report">
+                        <i class="fas fa-file-alt"></i>
+                        <div>
+                            <h4>自訂報告</h4>
+                            <p>創建個性化數據報告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系統優化頁面 -->
+        <div id="optimization-page" class="page">
+            <div class="dashboard-header">
+                <h2>系統優化與管理</h2>
+                <div>
+                    <button class="btn" id="run-optimization">執行優化</button>
+                    <button class="btn btn-primary" id="add-budget">增加預算</button>
+                </div>
+            </div>
+            
+            <div class="section-intro">
+                <h3><i class="fas fa-tachometer-alt"></i> 系統優化指南</h3>
+                <p>在此頁面優化您的城市系統。平衡預算與效能，處理系統警報，實施優化建議，並預測未來效能。</p>
+            </div>
+            
+            <div class="play-guide">
+                <h3><i class="fas fa-cogs"></i> 系統優化玩法</h3>
+                <div class="play-guide-grid">
+                    <div class="play-item">
+                        <h4><i class="fas fa-chess-king"></i> 策略優化</h4>
+                        <p>制定長期優化策略，平衡短期成本與長期效益。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-first-aid"></i> 故障排除</h4>
+                        <p>快速診斷和解決系統問題，最小化停機時間。</p>
+                    </div>
+                    <div class="play-item">
+                        <h4><i class="fas fa-chart-line"></i> 效能追蹤</h4>
+                        <p>監控優化效果，持續改進系統效能。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="optimization-panels">
+                <div class="panel">
+                    <h3>預算管理</h3>
+                    <p>管理您的城市預算，平衡感測器部署與系統維護成本。</p>
+                    
+                    <div class="budget-meter" style="margin: 1.5rem 0;">
+                        <div class="budget-fill" id="optimization-budget-fill" style="width: 65%"></div>
+                    </div>
+                    
+                    <div class="budget-details">
+                        <div class="budget-item">
+                            <span>感測器成本</span>
+                            <span id="sensor-cost">$1,320</span>
+                        </div>
+                        <div class="budget-item">
+                            <span>維護費用</span>
+                            <span id="maintenance-cost">$480</span>
+                        </div>
+                        <div class="budget-item">
+                            <span>能源費用</span>
+                            <span id="energy-cost">$150</span>
+                        </div>
+                        <div class="budget-item total">
+                            <span>總支出</span>
+                            <span id="total-cost">$1,950</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>預算健康度</span>
+                            <span id="budget-health">良好</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill good" id="budget-health-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>能源消耗優化</h3>
+                    <p>監控和優化感測器網絡的能源消耗。</p>
+                    
+                    <div class="energy-status">
+                        <div class="energy-item">
+                            <div class="energy-label">當前能耗</div>
+                            <div class="energy-value" id="current-energy">2.4 kW</div>
+                        </div>
+                        <div class="energy-item">
+                            <div class="energy-label">目標能耗</div>
+                            <div class="energy-value" id="target-energy">2.0 kW</div>
+                        </div>
+                        <div class="energy-item">
+                            <div class="energy-label">節省潛力</div>
+                            <div class="energy-value" id="saving-potential">16.7%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>能源效率</span>
+                            <span id="energy-efficiency">83.3%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" id="energy-efficiency-bar" style="width: 83.3%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="optimization-tips" style="margin-top: 1.5rem;">
+                        <h4>優化建議:</h4>
+                        <ul id="optimization-tips-list">
+                            <!-- 將由JavaScript生成 -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>系統警報</h3>
+                    <p>監控系統狀態並處理潛在問題。點擊警報查看更多詳情。</p>
+                    
+                    <div class="alert-list" id="alert-list">
+                        <!-- 警報將由JavaScript動態生成 -->
+                    </div>
+                    
+                    <button class="btn" id="view-all-alerts" style="width: 100%; margin-top: 1.5rem;">查看所有警報</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>效能預測</h3>
+                    <p>基於當前配置的系統效能預測。</p>
+                    
+                    <div class="prediction-chart">
+                        <div class="prediction-item">
+                            <div class="prediction-label">當前效能</div>
+                            <div class="prediction-value" id="current-performance">87%</div>
+                            <div class="prediction-bar">
+                                <div class="prediction-fill" id="current-performance-bar" style="width: 87%"></div>
+                            </div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">優化後預測</div>
+                            <div class="prediction-value" id="predicted-performance">94%</div>
+                            <div class="prediction-bar">
+                                <div class="prediction-fill" id="predicted-performance-bar" style="width: 94%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>優化潛力</span>
+                            <span id="optimization-potential">7%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="optimization-potential-bar" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="prediction-details" style="margin-top: 1.5rem;">
+                        <h4>預測改進:</h4>
+                        <ul id="prediction-details-list">
+                            <!-- 將由JavaScript生成 -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-panel">
+                <h3><i class="fas fa-magic"></i> 優化工具</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" id="auto-optimize">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <h4>自動優化</h4>
+                            <p>AI自動執行最佳優化策略</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="scenario-sim">
+                        <i class="fas fa-vial"></i>
+                        <div>
+                            <h4>場景模擬</h4>
+                            <p>模擬不同優化策略的效果</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="risk-assessment">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <h4>風險評估</h4>
+                            <p>評估系統變更的潛在風險</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" id="performance-audit">
+                        <i class="fas fa-clipboard-check"></i>
+                        <div>
+                            <h4>效能審計</h4>
+                            <p>全面審查系統效能狀況</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 頁腳 -->
+    <footer>
+        <p>IoT智慧城市模擬器 &copy; 2023 | 科技教育工具 | 設計與開發: Sam.T</p>
+        <p>此為教育用途的模擬器，展示物聯網技術在城市管理中的應用</p>
+        <div class="copyright">
+            <p>版權聲明 © 2026 Create By 【 Sam.T 】</p>
+            <p>Copyright © 2026 Sam.T. All rights reserved.</p>
+            <p>版權所有© 2026 Sam.T</p>
+        </div>
+    </footer>
+    
+    <!-- 新增感測器模態框 -->
+    <div class="modal" id="sensor-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>新增感測器</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <form id="sensor-form">
+                <div class="form-group">
+                    <label for="sensor-type">感測器類型</label>
+                    <select id="sensor-type" required>
+                        <option value="">選擇感測器類型</option>
+                        <option value="temperature">溫度感測器</option>
+                        <option value="traffic">交通感測器</option>
+                        <option value="energy">能源感測器</option>
+                        <option value="security">安全監控</option>
+                        <option value="water">水質監測</option>
+                        <option value="air">空氣品質</option>
+                        <option value="waste">廢物管理</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sensor-name">感測器名稱</label>
+                    <input type="text" id="sensor-name" placeholder="例如: 中央公園溫度感測器" required>
+                </div>
+                <div class="form-group">
+                    <label for="sensor-location">部署位置</label>
+                    <select id="sensor-location" required>
+                        <option value="">選擇部署區域</option>
+                        <option value="residential">住宅區</option>
+                        <option value="commercial">商業區</option>
+                        <option value="industrial">工業區</option>
+                        <option value="park">公園區域</option>
+                        <option value="transportation">交通樞紐</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sensor-config">取樣率 (每小時)</label>
+                    <select id="sensor-config" required>
+                        <option value="10">低 (10次/小時)</option>
+                        <option value="30" selected>中 (30次/小時)</option>
+                        <option value="60">高 (60次/小時)</option>
+                        <option value="120">超高 (120次/小時)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="cost-preview">
+                        <p>預計成本: <span id="cost-preview">$120</span></p>
+                        <p>預計能耗: <span id="energy-preview">0.3kW</span></p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" class="btn" id="cancel-sensor">取消</button>
+                    <button type="submit" class="btn btn-primary">部署感測器</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 感測器詳情模態框 -->
+    <div class="modal" id="sensor-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>感測器詳情</h3>
+                <button class="close-modal" id="close-detail-modal">&times;</button>
+            </div>
+            <div id="sensor-detail-content">
+                <!-- 內容將由JavaScript動態生成 -->
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn" id="close-detail-btn">關閉</button>
+                <button type="button" class="btn btn-primary" id="configure-sensor">配置</button>
+                <button type="button" class="btn btn-danger" id="remove-sensor">移除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 操作指南模態框 -->
+    <div class="modal" id="guide-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-book"></i> 平台操作指南</h3>
+                <button class="close-modal" id="close-guide-modal">&times;</button>
+            </div>
+            <div style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
+                <div class="guide-container" style="display: block; counter-reset: step-counter;">
+                    <div class="guide-step">
+                        <h3>步驟一：了解基本概念</h3>
+                        <p>智慧城市通過物聯網感測器收集數據，優化城市運作。本模擬器讓您體驗從零開始建設智慧城市的過程。</p>
+                        <div class="step-tip">
+                            <h4>📚 學習要點</h4>
+                            <p>• 物聯網感測器類型與功能</p>
+                            <p>• 城市區域劃分與感測器佈局</p>
+                            <p>• 數據收集與分析的重要性</p>
+                        </div>
+                    </div>
+                    
+                    <div class="guide-step">
+                        <h3>步驟二：部署感測器</h3>
+                        <p>在「城市管理」頁面，拖放感測器到城市地圖上。不同區域需要不同類型的感測器來收集數據。</p>
+                        <div class="step-tip">
+                            <h4>🎯 部署技巧</h4>
+                            <p>• 住宅區：部署溫度、能源感測器</p>
+                            <p>• 商業區：部署交通、安全感測器</p>
+                            <p>• 工業區：部署能源、空氣品質感測器</p>
+                            <p>• 公園區域：部署水質、環境感測器</p>
+                            <p>• 交通樞紐：部署交通、安全感測器</p>
+                        </div>
+                    </div>
+                    
+                    <div class="guide-step">
+                        <h3>步驟三：監控數據</h3>
+                        <p>在「數據分析」頁面，查看各種感測器收集的數據。圖表和指標幫助您了解城市運作狀態。</p>
+                        <div class="step-tip">
+                            <h4>📊 監控重點</h4>
+                            <p>• 能源消耗趨勢圖：了解用電模式</p>
+                            <p>• 系統效能指標：追蹤系統健康狀況</p>
+                            <p>• 感測器分佈統計：確保均衡覆蓋</p>
+                            <p>• 數據準確率：確保數據可靠性</p>
+                        </div>
+                    </div>
+                    
+                    <div class="guide-step">
+                        <h3>步驟四：系統優化</h3>
+                        <p>在「系統優化」頁面，根據數據分析結果進行系統調整。平衡預算、能源消耗與系統效能。</p>
+                        <div class="step-tip">
+                            <h4>⚙️ 優化策略</h4>
+                            <p>• 調整感測器取樣率：平衡數據質量與能耗</p>
+                            <p>• 重新分配預算：優先投資高效能區域</p>
+                            <p>• 處理系統警報：及時解決潛在問題</p>
+                            <p>• 實施優化建議：根據AI建議改進系統</p>
+                        </div>
+                    </div>
+                    
+                    <div class="guide-step">
+                        <h3>步驟五：挑戰與進階玩法</h3>
+                        <p>完成基本操作後，嘗試各種挑戰任務和進階玩法，提升您的城市管理水平。</p>
+                        <div class="step-tip">
+                            <h4>🚀 進階挑戰</h4>
+                            <p>• 預算限制模式：在有限預算內達成目標</p>
+                            <p>• 能源效率挑戰：最大化能源使用效率</p>
+                            <p>• 災難應對模擬：測試系統韌性</p>
+                            <p>• 時間限制挑戰：在時限內完成任務</p>
+                        </div>
+                    </div>
+                    
+                    <div class="guide-step">
+                        <h3>步驟六：工具與資源</h3>
+                        <p>利用各種工具和資源來提升管理效率。每個頁面都有專用工具幫助您更好地管理城市。</p>
+                        <div class="step-tip">
+                            <h4>🛠️ 可用工具</h4>
+                            <p>• 感測器配置工具：批量調整設定</p>
+                            <p>• 數據導出功能：保存分析結果</p>
+                            <p>• 效能預測工具：預測未來趨勢</p>
+                            <p>• 智能部署助手：AI推薦最佳佈局</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn" id="close-guide-btn">關閉</button>
+                <button type="button" class="btn btn-primary" id="start-from-guide">開始模擬</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript代碼 -->
+    <script>
+        'use strict';
+        
+        // 全局變數
+        let currentPage = 'home';
+        let currentGameMode = 'normal';
+        let sensors = [
+            {id: 1, type: 'temperature', name: '中央公園溫度感測器', x: 1, y: 2, cost: 120, energy: 0.3, 
+             status: 'active', dataRate: 30, lastUpdate: new Date(Date.now() - 300000), 
+             battery: 85, signal: 92, location: 'park'},
+            {id: 2, type: 'traffic', name: '主街交通監控', x: 4, y: 3, cost: 200, energy: 0.5, 
+             status: 'active', dataRate: 60, lastUpdate: new Date(Date.now() - 120000), 
+             battery: 72, signal: 88, location: 'commercial'},
+            {id: 3, type: 'energy', name: '商業區能源監測', x: 2, y: 5, cost: 180, energy: 0.4, 
+             status: 'active', dataRate: 30, lastUpdate: new Date(Date.now() - 180000), 
+             battery: 91, signal: 95, location: 'commercial'},
+            {id: 4, type: 'security', name: '市政府安全監控', x: 5, y: 1, cost: 250, energy: 0.6, 
+             status: 'active', dataRate: 120, lastUpdate: new Date(Date.now() - 60000), 
+             battery: 65, signal: 85, location: 'commercial'},
+            {id: 5, type: 'temperature', name: '住宅區溫度監測', x: 3, y: 4, cost: 120, energy: 0.3, 
+             status: 'active', dataRate: 10, lastUpdate: new Date(Date.now() - 240000), 
+             battery: 78, signal: 90, location: 'residential'},
+            {id: 6, type: 'traffic', name: '高速公路流量監測', x: 6, y: 2, cost: 200, energy: 0.5, 
+             status: 'active', dataRate: 60, lastUpdate: new Date(Date.now() - 90000), 
+             battery: 81, signal: 87, location: 'transportation'},
+            {id: 7, type: 'energy', name: '工業區用電監測', x: 1, y: 6, cost: 180, energy: 0.4, 
+             status: 'active', dataRate: 30, lastUpdate: new Date(Date.now() - 150000), 
+             battery: 69, signal: 83, location: 'industrial'},
+            {id: 8, type: 'temperature', name: '河岸環境監測', x: 5, y: 5, cost: 120, energy: 0.3, 
+             status: 'warning', dataRate: 30, lastUpdate: new Date(Date.now() - 360000), 
+             battery: 42, signal: 76, location: 'park'}
+        ];
+        
+        let totalBudget = 3000;
+        let usedBudget = 1950;
+        let totalEnergy = 2.4;
+        let systemAlerts = [];
+        let optimizationHistory = [];
+        let challenges = {
+            cityPlanner: {completed: false, progress: 2, total: 5},
+            energyExpert: {completed: false, progress: 2.4, target: 2.0},
+            sensorMaster: {completed: true, progress: 5, total: 5}
+        };
+        
+        // DOM元素緩存
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        const sensorModal = document.getElementById('sensor-modal');
+        const sensorDetailModal = document.getElementById('sensor-detail-modal');
+        const guideModal = document.getElementById('guide-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const closeDetailModalBtn = document.getElementById('close-detail-modal');
+        const closeGuideModalBtn = document.getElementById('close-guide-modal');
+        const cancelSensorBtn = document.getElementById('cancel-sensor');
+        const sensorForm = document.getElementById('sensor-form');
+        const sensorTypeSelect = document.getElementById('sensor-type');
+        const costPreview = document.getElementById('cost-preview');
+        const energyPreview = document.getElementById('energy-preview');
+        const guideBtn = document.getElementById('guide-btn');
+        const guideContainer = document.getElementById('guide-container');
+        const startFromGuideBtn = document.getElementById('start-from-guide');
+        const closeGuideBtn = document.getElementById('close-guide-btn');
+        
+        // 遊戲模式切換
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const mode = this.dataset.mode;
+                
+                // 更新選中狀態
+                document.querySelectorAll('.mode-card').forEach(c => {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                currentGameMode = mode;
+                
+                // 根據模式調整參數
+                switch(mode) {
+                    case 'easy':
+                        totalBudget = 5000;
+                        break;
+                    case 'normal':
+                        totalBudget = 3000;
+                        break;
+                    case 'hard':
+                        totalBudget = 1500;
+                        break;
+                    case 'creative':
+                        totalBudget = 99999; // 無限預算
+                        break;
+                }
+                
+                // 更新顯示
+                updateStats();
+                
+                showNotification(`已切換到${getModeName(mode)}模式`, 'info');
+            });
+        });
+        
+        // 獲取模式名稱
+        function getModeName(mode) {
+            switch(mode) {
+                case 'easy': return '初學者';
+                case 'normal': return '標準';
+                case 'hard': return '專家';
+                case 'creative': return '創意';
+                default: return '標準';
+            }
+        }
+        
+        // 操作指南按鈕
+        guideBtn.addEventListener('click', function() {
+            guideModal.classList.add('active');
+        });
+        
+        closeGuideModalBtn.addEventListener('click', function() {
+            guideModal.classList.remove('active');
+        });
+        
+        closeGuideBtn.addEventListener('click', function() {
+            guideModal.classList.remove('active');
+        });
+        
+        startFromGuideBtn.addEventListener('click', function() {
+            guideModal.classList.remove('active');
+            document.querySelector('[data-page="city"]').click();
+            showNotification('歡迎使用智慧城市模擬器！開始部署您的第一個感測器吧。', 'success');
+        });
+        
+        // 工具按鈕事件
+        document.querySelectorAll('.tool-item').forEach(tool => {
+            tool.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) return;
+                
+                const toolId = this.id;
+                showNotification(`已啟動 ${this.querySelector('h4').textContent} 功能`, 'info');
+                
+                // 根據工具ID執行相應功能
+                switch(toolId) {
+                    case 'auto-deploy':
+                        autoDeploySensors();
+                        break;
+                    case 'heatmap':
+                        showHeatmap();
+                        break;
+                    case 'export-map':
+                        exportCityMap();
+                        break;
+                    case 'predictive-analytics':
+                        showPredictiveAnalytics();
+                        break;
+                    case 'auto-optimize':
+                        autoOptimizeSystem();
+                        break;
+                    case 'scenario-sim':
+                        showScenarioSimulation();
+                        break;
+                    default:
+                        // 其他工具顯示功能提示
+                        const toolName = this.querySelector('h4').textContent;
+                        alert(`${toolName}功能\n\n此功能將在完整版本中提供更詳細的功能。\n\n目前版本支援：\n• 基本感測器部署\n• 數據監控與分析\n• 系統優化建議\n• 挑戰任務完成`);
+                }
+            });
+        });
+        
+        // 自動部署感測器
+        function autoDeploySensors() {
+            const emptyCells = document.querySelectorAll('.grid-cell:not(.occupied)');
+            if (emptyCells.length === 0) {
+                showNotification('城市地圖已滿，無法自動部署', 'warning');
+                return;
+            }
+            
+            // 隨機選擇幾個空單元格部署感測器
+            const deployments = Math.min(3, emptyCells.length);
+            const sensorTypes = ['temperature', 'traffic', 'energy', 'security', 'water', 'air', 'waste'];
+            
+            let deployedCount = 0;
+            
+            for (let i = 0; i < deployments; i++) {
+                const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                const randomType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
+                
+                let cost, energy;
+                switch(randomType) {
+                    case 'temperature': cost = 120; energy = 0.3; break;
+                    case 'traffic': cost = 200; energy = 0.5; break;
+                    case 'energy': cost = 180; energy = 0.4; break;
+                    case 'security': cost = 250; energy = 0.6; break;
+                    case 'water': cost = 220; energy = 0.4; break;
+                    case 'air': cost = 190; energy = 0.35; break;
+                    case 'waste': cost = 170; energy = 0.3; break;
+                    default: cost = 150; energy = 0.4;
+                }
+                
+                const x = parseInt(randomCell.dataset.x);
+                const y = parseInt(randomCell.dataset.y);
+                
+                if (addNewSensor(randomType, cost, energy, x, y)) {
+                    deployedCount++;
+                }
+            }
+            
+            showNotification(`AI已自動部署 ${deployedCount} 個感測器`, 'success');
+        }
+        
+        // 顯示熱力圖
+        function showHeatmap() {
+            const cells = document.querySelectorAll('.grid-cell');
+            cells.forEach(cell => {
+                cell.style.backgroundColor = '';
+            });
+            
+            // 為每個有感測器的單元格添加熱力圖效果
+            sensors.forEach(sensor => {
+                const cell = document.querySelector(`.grid-cell[data-x="${sensor.x}"][data-y="${sensor.y}"]`);
+                if (cell) {
+                    // 根據感測器類型設定顏色強度
+                    let intensity = 0.3;
+                    if (sensor.dataRate > 60) intensity = 0.7;
+                    else if (sensor.dataRate > 30) intensity = 0.5;
+                    
+                    if (sensor.type === 'temperature') {
+                        cell.style.backgroundColor = `rgba(255, 107, 107, ${intensity})`;
+                    } else if (sensor.type === 'traffic') {
+                        cell.style.backgroundColor = `rgba(78, 205, 196, ${intensity})`;
+                    } else if (sensor.type === 'energy') {
+                        cell.style.backgroundColor = `rgba(255, 230, 109, ${intensity})`;
+                    } else if (sensor.type === 'security') {
+                        cell.style.backgroundColor = `rgba(157, 78, 221, ${intensity})`;
+                    }
+                }
+            });
+            
+            showNotification('熱力圖已顯示 - 顏色表示數據收集強度', 'info');
+            
+            // 5秒後恢復原狀
+            setTimeout(() => {
+                cells.forEach(cell => {
+                    cell.style.backgroundColor = '';
+                });
+            }, 5000);
+        }
+        
+        // 導出城市地圖
+        function exportCityMap() {
+            const mapData = {
+                sensors: sensors.map(s => ({
+                    type: s.type,
+                    name: s.name,
+                    x: s.x,
+                    y: s.y,
+                    location: s.location
+                })),
+                timestamp: new Date().toISOString(),
+                gameMode: currentGameMode
+            };
+            
+            const dataStr = JSON.stringify(mapData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `智慧城市地圖_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('城市地圖已導出為JSON文件！', 'success');
+        }
+        
+        // 顯示預測分析
+        function showPredictiveAnalytics() {
+            const predictions = {
+                energy: {
+                    current: sensors.reduce((sum, s) => sum + s.energy, 0),
+                    predicted: sensors.reduce((sum, s) => sum + s.energy * 0.9, 0) // 預測降低10%
+                },
+                efficiency: {
+                    current: calculateSystemPerformance(),
+                    predicted: Math.min(calculateSystemPerformance() + 8, 100)
+                },
+                cost: {
+                    current: usedBudget,
+                    predicted: usedBudget * 1.1 // 預測成本增加10%
+                }
+            };
+            
+            const message = `預測分析結果：\n\n` +
+                          `能源消耗：${predictions.energy.current.toFixed(1)}kW → ${predictions.energy.predicted.toFixed(1)}kW\n` +
+                          `系統效能：${predictions.efficiency.current}% → ${predictions.efficiency.predicted}%\n` +
+                          `總成本：$${Math.round(predictions.cost.current)} → $${Math.round(predictions.cost.predicted)}\n\n` +
+                          `基於歷史數據和當前趨勢的預測，僅供參考。`;
+            
+            alert(message);
+        }
+        
+        // 自動優化系統
+        function autoOptimizeSystem() {
+            let optimizations = 0;
+            
+            // 優化低取樣率的感測器
+            sensors.forEach(sensor => {
+                if (sensor.dataRate > 60 && sensor.status === 'active') {
+                    const oldRate = sensor.dataRate;
+                    sensor.dataRate = 60;
+                    sensor.energy = sensor.energy * (60 / oldRate);
+                    optimizations++;
+                    
+                    addAlert({
+                        type: 'info',
+                        title: `${sensor.name} 取樣率優化`,
+                        message: `取樣率從 ${oldRate} 調整為 60 次/小時`,
+                        sensorId: sensor.id,
+                        resolved: true
+                    });
+                }
+            });
+            
+            // 修復警告狀態的感測器
+            sensors.forEach(sensor => {
+                if (sensor.status === 'warning' && sensor.battery < 50) {
+                    sensor.battery = 80;
+                    sensor.status = 'active';
+                    optimizations++;
+                    
+                    addAlert({
+                        type: 'success',
+                        title: `${sensor.name} 電池充電`,
+                        message: '電池已充電至80%，狀態恢復正常',
+                        sensorId: sensor.id,
+                        resolved: true
+                    });
+                }
+            });
+            
+            if (optimizations > 0) {
+                updateStats();
+                showNotification(`自動優化完成！執行了 ${optimizations} 項優化`, 'success');
+            } else {
+                showNotification('系統已優化良好，無需自動優化', 'info');
+            }
+        }
+        
+        // 顯示場景模擬
+        function showScenarioSimulation() {
+            const scenarios = [
+                {
+                    name: '節能場景',
+                    description: '將所有感測器取樣率降低20%',
+                    effect: '能源消耗降低15%，數據準確率降低5%'
+                },
+                {
+                    name: '高效能場景',
+                    description: '將關鍵感測器取樣率提高50%',
+                    effect: '數據準確率提高10%，能源消耗增加20%'
+                },
+                {
+                    name: '成本控制場景',
+                    description: '移除20%的非關鍵感測器',
+                    effect: '成本降低25%，系統效能降低8%'
+                }
+            ];
+            
+            let scenarioText = '場景模擬選項：\n\n';
+            scenarios.forEach((scenario, index) => {
+                scenarioText += `${index + 1}. ${scenario.name}\n`;
+                scenarioText += `   描述：${scenario.description}\n`;
+                scenarioText += `   效果：${scenario.effect}\n\n`;
+            });
+            
+            scenarioText += '選擇場景進行模擬（輸入數字）：';
+            
+            const choice = prompt(scenarioText);
+            if (choice && ['1', '2', '3'].includes(choice)) {
+                const selectedScenario = scenarios[parseInt(choice) - 1];
+                showNotification(`正在模擬「${selectedScenario.name}」...`, 'info');
+                
+                // 模擬延遲效果
+                setTimeout(() => {
+                    showNotification(`「${selectedScenario.name}」模擬完成！效果：${selectedScenario.effect}`, 'success');
+                }, 2000);
+            }
+        }
+        
+        // 頁面切換功能
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pageId = this.getAttribute('data-page');
+                
+                // 更新導航狀態
+                document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 切換頁面
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                document.getElementById(`${pageId}-page`).classList.add('active');
+                
+                currentPage = pageId;
+                
+                // 關閉行動裝置選單
+                if (navLinks.classList.contains('active')) {
+                    navLinks.classList.remove('active');
+                }
+                
+                // 如果切換到城市頁面，初始化地圖
+                if (pageId === 'city') {
+                    initializeCityGrid();
+                    updateStats();
+                    updateChallenges();
+                }
+                
+                // 如果切換到數據頁面，初始化圖表
+                if (pageId === 'data') {
+                    initializeCharts();
+                    updateDistributionChart();
+                    updatePerformanceMetrics();
+                }
+                
+                // 如果切換到優化頁面，更新數據
+                if (pageId === 'optimization') {
+                    updateOptimizationPage();
+                    updateAlertsDisplay();
+                    updateOptimizationTips();
+                }
+            });
+        });
+        
+        // 行動裝置選單切換
+        mobileMenuBtn.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+        });
+        
+        // 初始化城市網格
+        function initializeCityGrid() {
+            const grid = document.getElementById('city-grid');
+            grid.innerHTML = '';
+            
+            // 創建6x6網格
+            for (let row = 1; row <= 6; row++) {
+                for (let col = 1; col <= 6; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.x = col;
+                    cell.dataset.y = row;
+                    
+                    // 檢查是否有感測器在這個位置
+                    const sensorInCell = sensors.find(s => s.x == col && s.y == row);
+                    if (sensorInCell) {
+                        cell.classList.add('occupied');
+                        const sensor = createSensorElement(sensorInCell);
+                        cell.appendChild(sensor);
+                    }
+                    
+                    // 添加放置事件
+                    cell.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        this.classList.add('hover');
+                    });
+                    
+                    cell.addEventListener('dragleave', function() {
+                        this.classList.remove('hover');
+                    });
+                    
+                    cell.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('hover');
+                        
+                        const sensorType = e.dataTransfer.getData('sensorType');
+                        const sensorCost = parseInt(e.dataTransfer.getData('sensorCost'));
+                        const sensorEnergy = parseFloat(e.dataTransfer.getData('sensorEnergy'));
+                        const sensorId = e.dataTransfer.getData('sensorId');
+                        
+                        // 如果是移動現有感測器
+                        if (sensorId) {
+                            moveSensor(parseInt(sensorId), parseInt(this.dataset.x), parseInt(this.dataset.y));
+                            return;
+                        }
+                        
+                        // 如果是新增感測器
+                        if (sensorType && !this.classList.contains('occupied')) {
+                            addNewSensor(sensorType, sensorCost, sensorEnergy, 
+                                        parseInt(this.dataset.x), parseInt(this.dataset.y));
+                        }
+                    });
+                    
+                    grid.appendChild(cell);
+                }
+            }
+        }
+        
+        // 創建感測器元素
+        function createSensorElement(sensor) {
+            const sensorContainer = document.createElement('div');
+            sensorContainer.style.position = 'relative';
+            
+            const sensorElement = document.createElement('div');
+            sensorElement.className = `sensor ${sensor.type}`;
+            sensorElement.dataset.id = sensor.id;
+            sensorElement.dataset.type = sensor.type;
+            sensorElement.innerHTML = `<i class="${getSensorIcon(sensor.type)}"></i>`;
+            
+            // 添加感測器資訊提示
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'sensor-info';
+            infoDiv.innerHTML = `
+                <strong>${sensor.name}</strong><br>
+                狀態: ${getStatusText(sensor.status)}<br>
+                電量: ${sensor.battery}%
+            `;
+            sensorElement.appendChild(infoDiv);
+            
+            const label = document.createElement('div');
+            label.className = 'sensor-label';
+            label.textContent = sensor.name.substring(0, 6);
+            
+            // 添加點擊查看詳情功能
+            sensorElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showSensorDetail(sensor.id);
+            });
+            
+            // 添加拖動事件
+            sensorElement.setAttribute('draggable', 'true');
+            sensorElement.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('sensorId', sensor.id);
+                e.dataTransfer.setData('sensorType', sensor.type);
+                e.dataTransfer.setData('sensorCost', sensor.cost);
+                e.dataTransfer.setData('sensorEnergy', sensor.energy);
+            });
+            
+            sensorContainer.appendChild(sensorElement);
+            sensorContainer.appendChild(label);
+            
+            return sensorContainer;
+        }
+        
+        // 顯示感測器詳情
+        function showSensorDetail(sensorId) {
+            const sensor = sensors.find(s => s.id === sensorId);
+            if (!sensor) return;
+            
+            const detailContent = document.getElementById('sensor-detail-content');
+            detailContent.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="sensor ${sensor.type}" style="width: 60px; height: 60px;">
+                        <i class="${getSensorIcon(sensor.type)}"></i>
+                    </div>
+                    <div>
+                        <h3>${sensor.name}</h3>
+                        <p>類型: ${getSensorName(sensor.type)}</p>
+                    </div>
+                </div>
+                
+                <div class="sensor-details">
+                    <div class="detail-row">
+                        <span>狀態:</span>
+                        <span class="status-${sensor.status}">${getStatusText(sensor.status)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>位置:</span>
+                        <span>(${sensor.x}, ${sensor.y}) - ${getLocationName(sensor.location)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>成本:</span>
+                        <span>$${sensor.cost}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>能耗:</span>
+                        <span>${sensor.energy}kW</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>取樣率:</span>
+                        <span>${sensor.dataRate}次/小時</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>電量:</span>
+                        <span>${sensor.battery}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>信號強度:</span>
+                        <span>${sensor.signal}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>最後更新:</span>
+                        <span>${formatTime(sensor.lastUpdate)}</span>
+                    </div>
+                </div>
+                
+                <style>
+                    .sensor-details {
+                        display: grid;
+                        gap: 0.5rem;
+                    }
+                    .detail-row {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+                    }
+                    .detail-row:last-child {
+                        border-bottom: none;
+                    }
+                    .status-active { color: var(--success); }
+                    .status-warning { color: var(--warning); }
+                    .status-inactive { color: var(--text-secondary); }
+                </style>
+            `;
+            
+            // 設置移除按鈕事件
+            const removeBtn = document.getElementById('remove-sensor');
+            removeBtn.onclick = function() {
+                if (confirm(`確定要移除 ${sensor.name} 嗎？`)) {
+                    deleteSensor(sensor.id);
+                    sensorDetailModal.classList.remove('active');
+                }
+            };
+            
+            // 設置配置按鈕事件
+            const configBtn = document.getElementById('configure-sensor');
+            configBtn.onclick = function() {
+                const newRate = prompt(`調整 ${sensor.name} 的取樣率 (當前: ${sensor.dataRate}次/小時)`, sensor.dataRate);
+                if (newRate && !isNaN(newRate) && newRate >= 1 && newRate <= 240) {
+                    const oldRate = sensor.dataRate;
+                    sensor.dataRate = parseInt(newRate);
+                    sensor.energy = sensor.energy * (sensor.dataRate / oldRate);
+                    
+                    updateStats();
+                    sensorDetailModal.classList.remove('active');
+                    showNotification(`${sensor.name} 取樣率已調整為 ${sensor.dataRate}次/小時`, 'success');
+                }
+            };
+            
+            sensorDetailModal.classList.add('active');
+        }
+        
+        // 新增感測器
+        function addNewSensor(type, baseCost, baseEnergy, x, y) {
+            const config = document.getElementById('sensor-config');
+            const dataRate = config ? parseInt(config.value) : 30;
+            const location = document.getElementById('sensor-location');
+            const locationValue = location ? location.value : 'residential';
+            const nameInput = document.getElementById('sensor-name');
+            const sensorName = nameInput && nameInput.value.trim() !== '' ? 
+                nameInput.value : `${getSensorName(type)} ${sensors.length + 1}`;
+            
+            // 根據取樣率調整成本和能源消耗
+            const costMultiplier = dataRate / 30;
+            const energyMultiplier = dataRate / 30;
+            
+            const cost = Math.round(baseCost * costMultiplier);
+            const energy = parseFloat((baseEnergy * energyMultiplier).toFixed(2));
+            
+            // 計算維護成本
+            const maintenanceCost = cost * 0.25;
+            const totalCost = cost + maintenanceCost;
+            
+            // 檢查預算
+            if (usedBudget + totalCost > totalBudget) {
+                showNotification('預算不足！無法部署更多感測器。', 'warning');
+                return false;
+            }
+            
+            // 檢查系統負載
+            const systemLoad = calculateSystemLoad();
+            if (systemLoad > 90) {
+                showNotification('系統負載過高！請先優化現有感測器。', 'warning');
+                return false;
+            }
+            
+            // 創建新感測器
+            const sensorId = sensors.length > 0 ? Math.max(...sensors.map(s => s.id)) + 1 : 1;
+            
+            const newSensor = {
+                id: sensorId,
+                type: type,
+                name: sensorName,
+                x: x,
+                y: y,
+                cost: cost,
+                energy: energy,
+                status: 'active',
+                dataRate: dataRate,
+                lastUpdate: new Date(),
+                battery: 100,
+                signal: 95,
+                location: locationValue
+            };
+            
+            sensors.push(newSensor);
+            
+            // 更新UI
+            const cell = document.querySelector(`.grid-cell[data-x="${x}"][data-y="${y}"]`);
+            if (cell) {
+                cell.classList.add('occupied');
+                const sensorElement = createSensorElement(newSensor);
+                cell.appendChild(sensorElement);
+            }
+            
+            // 更新統計數據
+            updateStats();
+            
+            // 更新挑戰進度
+            updateChallenges();
+            
+            // 顯示成功消息
+            showNotification(`成功部署 ${sensorName}！成本: $${cost}, 能耗: ${energy}kW`, 'success');
+            
+            // 隨機生成一個警報
+            if (Math.random() > 0.7) {
+                const alertTypes = ['info', 'warning'];
+                const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+                const alertMessages = [
+                    '新感測器部署完成，需要初始校準',
+                    '新感測器網絡連接測試中',
+                    '新感測器數據傳輸正常'
+                ];
+                
+                addAlert({
+                    type: alertType,
+                    title: `${sensorName} 部署完成`,
+                    message: alertMessages[Math.floor(Math.random() * alertMessages.length)],
+                    sensorId: sensorId,
+                    resolved: false
+                });
+            }
+            
+            return true;
+        }
+        
+        // 更新挑戰進度
+        function updateChallenges() {
+            // 挑戰1: 城市規劃師 - 在每個區域至少部署1個感測器
+            const locations = sensors.map(s => s.location);
+            const uniqueLocations = [...new Set(locations)];
+            challenges.cityPlanner.progress = uniqueLocations.length;
+            challenges.cityPlanner.completed = uniqueLocations.length >= 5;
+            
+            // 挑戰2: 節能專家 - 將總能源消耗控制在2.0kW以下
+            const totalEnergy = sensors.reduce((sum, s) => sum + s.energy, 0);
+            challenges.energyExpert.progress = totalEnergy;
+            challenges.energyExpert.completed = totalEnergy <= 2.0;
+            
+            // 挑戰3: 感測器大師 - 部署至少5個不同類型的感測器
+            const sensorTypes = sensors.map(s => s.type);
+            const uniqueTypes = [...new Set(sensorTypes)];
+            challenges.sensorMaster.progress = uniqueTypes.length;
+            challenges.sensorMaster.completed = uniqueTypes.length >= 5;
+            
+            // 更新挑戰顯示
+            document.getElementById('challenge1-progress').textContent = 
+                `${challenges.cityPlanner.progress}/5`;
+            document.getElementById('challenge1').querySelector('.progress-fill').style.width = 
+                `${(challenges.cityPlanner.progress / 5) * 100}%`;
+                
+            document.getElementById('challenge2-progress').textContent = 
+                `${totalEnergy.toFixed(1)}/2.0kW`;
+            document.getElementById('challenge2').querySelector('.progress-fill').style.width = 
+                `${Math.min((totalEnergy / 2.0) * 100, 100)}%`;
+                
+            // 更新挑戰卡樣式
+            document.getElementById('challenge1').classList.toggle('completed', challenges.cityPlanner.completed);
+            document.getElementById('challenge2').classList.toggle('completed', challenges.energyExpert.completed);
+            document.getElementById('challenge3').classList.toggle('completed', challenges.sensorMaster.completed);
+            
+            // 檢查是否有新完成的挑戰
+            if (challenges.cityPlanner.completed && !challenges.cityPlanner.rewarded) {
+                challenges.cityPlanner.rewarded = true;
+                totalBudget += 500;
+                showNotification('🎉 挑戰完成：城市規劃師！獲得$500獎勵', 'success');
+            }
+            
+            if (challenges.energyExpert.completed && !challenges.energyExpert.rewarded) {
+                challenges.energyExpert.rewarded = true;
+                totalBudget += 300;
+                showNotification('🎉 挑戰完成：節能專家！獲得$300獎勵', 'success');
+            }
+        }
+        
+        // 移動感測器
+        function moveSensor(sensorId, newX, newY) {
+            const sensorIndex = sensors.findIndex(s => s.id === sensorId);
+            if (sensorIndex === -1) return;
+            
+            // 檢查新位置是否已被佔用
+            const existingSensor = sensors.find(s => s.x === newX && s.y === newY);
+            if (existingSensor && existingSensor.id !== sensorId) {
+                showNotification('該位置已被其他感測器佔用！', 'warning');
+                return;
+            }
+            
+            // 更新感測器位置
+            const sensor = sensors[sensorIndex];
+            const oldX = sensor.x;
+            const oldY = sensor.y;
+            
+            sensor.x = newX;
+            sensor.y = newY;
+            
+            // 更新UI
+            const oldCell = document.querySelector(`.grid-cell[data-x="${oldX}"][data-y="${oldY}"]`);
+            const newCell = document.querySelector(`.grid-cell[data-x="${newX}"][data-y="${newY}"]`);
+            
+            if (oldCell && newCell) {
+                oldCell.classList.remove('occupied');
+                oldCell.innerHTML = '';
+                
+                newCell.classList.add('occupied');
+                const sensorElement = createSensorElement(sensor);
+                newCell.appendChild(sensorElement);
+            }
+            
+            showNotification(`已移動 ${sensor.name} 到位置 (${newX}, ${newY})`, 'info');
+        }
+        
+        // 刪除感測器
+        function deleteSensor(sensorId) {
+            const sensorIndex = sensors.findIndex(s => s.id === sensorId);
+            if (sensorIndex === -1) return;
+            
+            const sensor = sensors[sensorIndex];
+            
+            // 從陣列中移除
+            sensors.splice(sensorIndex, 1);
+            
+            // 更新UI
+            const cell = document.querySelector(`.grid-cell[data-x="${sensor.x}"][data-y="${sensor.y}"]`);
+            if (cell) {
+                cell.classList.remove('occupied');
+                cell.innerHTML = '';
+            }
+            
+            // 添加移除警報
+            addAlert({
+                type: 'info',
+                title: `${sensor.name} 已移除`,
+                message: '感測器已從系統中移除',
+                sensorId: sensorId,
+                resolved: true
+            });
+            
+            // 更新統計數據
+            updateStats();
+            
+            // 更新挑戰進度
+            updateChallenges();
+            
+            // 更新數據頁面
+            if (currentPage === 'data') {
+                updateDistributionChart();
+                updatePerformanceMetrics();
+            }
+            
+            // 更新優化頁面
+            if (currentPage === 'optimization') {
+                updateOptimizationPage();
+                updateOptimizationTips();
+            }
+            
+            showNotification(`已移除 ${sensor.name}`, 'info');
+        }
+        
+        // 添加警報
+        function addAlert(alertData) {
+            const newAlert = {
+                id: systemAlerts.length > 0 ? Math.max(...systemAlerts.map(a => a.id)) + 1 : 1,
+                type: alertData.type,
+                title: alertData.title,
+                message: alertData.message,
+                timestamp: new Date(),
+                sensorId: alertData.sensorId,
+                resolved: alertData.resolved || false
+            };
+            
+            systemAlerts.unshift(newAlert);
+            
+            // 保持最多10個警報
+            if (systemAlerts.length > 10) {
+                systemAlerts.pop();
+            }
+            
+            updateAlertsDisplay();
+            
+            // 如果不在優化頁面，顯示通知
+            if (currentPage !== 'optimization') {
+                showNotification(`新警報: ${alertData.title}`, alertData.type);
+            }
+        }
+        
+        // 更新警報顯示
+        function updateAlertsDisplay() {
+            const alertList = document.getElementById('alert-list');
+            if (!alertList) return;
+            
+            alertList.innerHTML = '';
+            
+            const activeAlerts = systemAlerts.filter(alert => !alert.resolved).slice(0, 3);
+            
+            if (activeAlerts.length === 0) {
+                alertList.innerHTML = '<div class="alert info"><i class="fas fa-check-circle"></i><div><h4>所有系統正常</h4><p>沒有待處理的警報</p></div></div>';
+                return;
+            }
+            
+            activeAlerts.forEach(alert => {
+                const alertElement = document.createElement('div');
+                alertElement.className = `alert ${alert.type}`;
+                alertElement.innerHTML = `
+                    <i class="fas ${getAlertIcon(alert.type)}"></i>
+                    <div>
+                        <h4>${alert.title}</h4>
+                        <p>${alert.message} - ${formatTime(alert.timestamp)}</p>
+                    </div>
+                `;
+                
+                alertElement.addEventListener('click', function() {
+                    if (alert.sensorId) {
+                        showSensorDetail(alert.sensorId);
+                    }
+                });
+                
+                alertList.appendChild(alertElement);
+            });
+        }
+        
+        // 計算系統負載
+        function calculateSystemLoad() {
+            const sensorCount = sensors.length;
+            const totalEnergyConsumption = sensors.reduce((sum, sensor) => sum + sensor.energy, 0);
+            const budgetUsage = (usedBudget / totalBudget) * 100;
+            
+            // 綜合計算系統負載
+            let load = 0;
+            load += (sensorCount / 20) * 30; // 感測器數量佔30%
+            load += (totalEnergyConsumption / 5) * 30; // 能源消耗佔30%
+            load += (budgetUsage / 100) * 40; // 預算使用佔40%
+            
+            return Math.min(Math.round(load), 100);
+        }
+        
+        // 初始化圖表
+        function initializeCharts() {
+            // 感測器數據圖表
+            updateSensorChart();
+            
+            // 能源消耗圖表
+            updateEnergyChart();
+            
+            // 能源圖表按鈕事件
+            document.getElementById('energy-day').addEventListener('click', function() {
+                setActiveEnergyButton('day');
+                updateEnergyChart('day');
+            });
+            
+            document.getElementById('energy-week').addEventListener('click', function() {
+                setActiveEnergyButton('week');
+                updateEnergyChart('week');
+            });
+            
+            document.getElementById('energy-month').addEventListener('click', function() {
+                setActiveEnergyButton('month');
+                updateEnergyChart('month');
+            });
+        }
+        
+        // 更新感測器數據圖表
+        function updateSensorChart() {
+            const sensorChart = document.getElementById('sensor-chart');
+            if (!sensorChart) return;
+            
+            sensorChart.innerHTML = '';
+            
+            // 根據感測器類型分組
+            const sensorData = [
+                {type: 'temperature', label: '溫度', value: 0, color: '#ff6b6b'},
+                {type: 'traffic', label: '交通', value: 0, color: '#4ecdc4'},
+                {type: 'energy', label: '能源', value: 0, color: '#ffe66d'},
+                {type: 'security', label: '安全', value: 0, color: '#9d4edd'},
+                {type: 'water', label: '水質', value: 0, color: '#4361ee'},
+                {type: 'air', label: '空氣', value: 0, color: '#2a9d8f'},
+                {type: 'waste', label: '廢物', value: 0, color: '#f77f00'}
+            ];
+            
+            // 計算每個類型的平均數據質量
+            sensorData.forEach(item => {
+                const typeSensors = sensors.filter(s => s.type === item.type);
+                if (typeSensors.length > 0) {
+                    // 基於感測器狀態、電量和信號計算數據質量
+                    const avgBattery = typeSensors.reduce((sum, s) => sum + s.battery, 0) / typeSensors.length;
+                    const avgSignal = typeSensors.reduce((sum, s) => sum + s.signal, 0) / typeSensors.length;
+                    const activeCount = typeSensors.filter(s => s.status === 'active').length;
+                    
+                    item.value = Math.round((avgBattery * 0.3 + avgSignal * 0.3 + (activeCount / typeSensors.length) * 40));
+                } else {
+                    item.value = Math.floor(Math.random() * 30) + 50; // 隨機數據
+                }
+            });
+            
+            const maxValue = Math.max(...sensorData.map(item => item.value));
+            
+            sensorData.forEach(item => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                const height = maxValue > 0 ? (item.value / maxValue) * 90 : 50;
+                bar.style.height = `${height}%`;
+                bar.style.background = `linear-gradient(to top, ${item.color}, ${item.color}99)`;
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = item.label;
+                
+                const value = document.createElement('div');
+                value.className = 'bar-value';
+                value.textContent = item.value;
+                
+                bar.appendChild(value);
+                bar.appendChild(label);
+                sensorChart.appendChild(bar);
+            });
+        }
+        
+        // 更新能源圖表
+        function updateEnergyChart(period = 'month') {
+            const energyChart = document.getElementById('energy-chart');
+            if (!energyChart) return;
+            
+            energyChart.innerHTML = '';
+            
+            let energyData, labels;
+            const currentEnergy = sensors.reduce((sum, sensor) => sum + sensor.energy, 0);
+            
+            switch(period) {
+                case 'day':
+                    // 模擬24小時數據
+                    energyData = Array.from({length: 12}, (_, i) => {
+                        const hour = i * 2;
+                        let multiplier = 1;
+                        if (hour >= 8 && hour <= 18) multiplier = 1.2; // 日間高峰
+                        if (hour >= 20 || hour <= 6) multiplier = 0.8; // 夜間低谷
+                        return parseFloat((currentEnergy * multiplier + (Math.random() - 0.5) * 0.3).toFixed(2));
+                    });
+                    labels = Array.from({length: 12}, (_, i) => `${i*2}:00`);
+                    break;
+                    
+                case 'week':
+                    // 模擬一週數據
+                    energyData = ['一', '二', '三', '四', '五', '六', '日'].map((day, i) => {
+                        let multiplier = 1;
+                        if (i >= 0 && i <= 4) multiplier = 1.1; // 工作日
+                        if (i === 5) multiplier = 0.9; // 週六
+                        if (i === 6) multiplier = 0.8; // 週日
+                        return parseFloat((currentEnergy * multiplier + (Math.random() - 0.5) * 0.2).toFixed(2));
+                    });
+                    labels = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
+                    break;
+                    
+                case 'month':
+                default:
+                    // 模擬4週數據
+                    energyData = Array.from({length: 12}, (_, i) => {
+                        const week = i + 1;
+                        let multiplier = 1;
+                        if (week === 2 || week === 4) multiplier = 0.95;
+                        return parseFloat((currentEnergy * multiplier + (Math.random() - 0.5) * 0.15).toFixed(2));
+                    });
+                    labels = Array.from({length: 12}, (_, i) => `第${i+1}週`);
+                    break;
+            }
+            
+            const maxEnergy = Math.max(...energyData);
+            const minHeight = 20; // 最小高度百分比
+            
+            energyData.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                const height = maxEnergy > 0 ? Math.max((value / maxEnergy) * 80, minHeight) : minHeight;
+                bar.style.height = `${height}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = labels[index];
+                
+                const valueEl = document.createElement('div');
+                valueEl.className = 'bar-value';
+                valueEl.textContent = value.toFixed(1);
+                
+                bar.appendChild(valueEl);
+                bar.appendChild(label);
+                energyChart.appendChild(bar);
+            });
+        }
+        
+        // 設置能源圖表按鈕狀態
+        function setActiveEnergyButton(period) {
+            document.querySelectorAll('#energy-day, #energy-week, #energy-month').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`energy-${period}`).classList.add('active');
+        }
+        
+        // 更新感測器分佈圖表
+        function updateDistributionChart() {
+            // 計算每種類型的感測器數量
+            const typeCounts = {
+                temperature: sensors.filter(s => s.type === 'temperature').length,
+                traffic: sensors.filter(s => s.type === 'traffic').length,
+                energy: sensors.filter(s => s.type === 'energy').length,
+                security: sensors.filter(s => s.type === 'security').length,
+                water: sensors.filter(s => s.type === 'water').length,
+                air: sensors.filter(s => s.type === 'air').length,
+                waste: sensors.filter(s => s.type === 'waste').length
+            };
+            
+            const totalSensors = sensors.length;
+            
+            // 更新顯示
+            const elements = {
+                temperature: {value: 'temp-count', bar: 'temp-bar'},
+                traffic: {value: 'traffic-count', bar: 'traffic-bar'},
+                energy: {value: 'energy-count', bar: 'energy-bar'},
+                security: {value: 'security-count', bar: 'security-bar'}
+            };
+            
+            Object.keys(elements).forEach(type => {
+                const element = elements[type];
+                const valueElement = document.getElementById(element.value);
+                const barElement = document.getElementById(element.bar);
+                
+                if (valueElement && barElement) {
+                    valueElement.textContent = typeCounts[type];
+                    const percentage = totalSensors > 0 ? (typeCounts[type] / totalSensors) * 100 : 0;
+                    barElement.style.width = `${percentage}%`;
+                }
+            });
+        }
+        
+        // 更新效能指標
+        function updatePerformanceMetrics() {
+            const sensorCount = sensors.length;
+            
+            // 計算回應時間（基於感測器數量和狀態）
+            let responseTime = 100 + (sensorCount * 5);
+            sensors.forEach(sensor => {
+                if (sensor.status !== 'active') responseTime += 20;
+                if (sensor.signal < 80) responseTime += 15;
+            });
+            responseTime = Math.min(responseTime, 500);
+            
+            // 計算數據準確率（基於感測器狀態）
+            let accuracy = 95;
+            sensors.forEach(sensor => {
+                if (sensor.status !== 'active') accuracy -= 2;
+                if (sensor.battery < 50) accuracy -= 1;
+                if (sensor.signal < 80) accuracy -= 1.5;
+            });
+            accuracy = Math.max(accuracy, 70);
+            
+            // 計算系統可用性
+            let availability = 99.5;
+            const warningSensors = sensors.filter(s => s.status === 'warning').length;
+            const inactiveSensors = sensors.filter(s => s.status === 'inactive').length;
+            availability -= (warningSensors * 0.2 + inactiveSensors * 0.5);
+            availability = Math.max(availability, 95);
+            
+            // 更新顯示
+            document.getElementById('response-time').textContent = `${Math.round(responseTime)}ms`;
+            document.getElementById('accuracy-rate').textContent = `${accuracy.toFixed(1)}%`;
+            document.getElementById('availability-rate').textContent = `${availability.toFixed(1)}%`;
+            
+            document.getElementById('response-bar').style.width = `${100 - (responseTime / 5)}%`;
+            document.getElementById('accuracy-bar').style.width = `${accuracy}%`;
+            document.getElementById('availability-bar').style.width = `${availability}%`;
+        }
+        
+        // 更新優化頁面數據
+        function updateOptimizationPage() {
+            // 計算成本
+            const sensorCost = sensors.reduce((sum, sensor) => sum + sensor.cost, 0);
+            const maintenanceCost = sensorCost * 0.25;
+            const energyCost = sensors.reduce((sum, sensor) => sum + sensor.energy, 0) * 50; // 假設$50/kW
+            const totalCost = sensorCost + maintenanceCost + energyCost;
+            
+            // 更新成本顯示
+            document.getElementById('sensor-cost').textContent = `$${sensorCost.toLocaleString()}`;
+            document.getElementById('maintenance-cost').textContent = `$${Math.round(maintenanceCost).toLocaleString()}`;
+            document.getElementById('energy-cost').textContent = `$${Math.round(energyCost).toLocaleString()}`;
+            document.getElementById('total-cost').textContent = `$${Math.round(totalCost).toLocaleString()}`;
+            
+            // 計算預算健康度
+            const budgetUsage = (totalCost / totalBudget) * 100;
+            let budgetHealth = '良好';
+            let budgetHealthClass = 'good';
+            if (budgetUsage > 80) {
+                budgetHealth = '危險';
+                budgetHealthClass = 'danger';
+            } else if (budgetUsage > 60) {
+                budgetHealth = '警告';
+                budgetHealthClass = 'warning';
+            }
+            
+            document.getElementById('budget-health').textContent = budgetHealth;
+            document.getElementById('budget-health-bar').className = `progress-fill ${budgetHealthClass}`;
+            document.getElementById('budget-health-bar').style.width = `${100 - budgetUsage}%`;
+            
+            // 更新能源數據
+            const currentEnergy = sensors.reduce((sum, sensor) => sum + sensor.energy, 0);
+            const targetEnergy = Math.max(currentEnergy * 0.9, 1.5);
+            const savingPotential = ((currentEnergy - targetEnergy) / currentEnergy) * 100;
+            const energyEfficiency = (targetEnergy / currentEnergy) * 100;
+            
+            document.getElementById('current-energy').textContent = `${currentEnergy.toFixed(1)} kW`;
+            document.getElementById('target-energy').textContent = `${targetEnergy.toFixed(1)} kW`;
+            document.getElementById('saving-potential').textContent = `${savingPotential.toFixed(1)}%`;
+            document.getElementById('energy-efficiency').textContent = `${energyEfficiency.toFixed(1)}%`;
+            document.getElementById('energy-efficiency-bar').style.width = `${energyEfficiency}%`;
+            
+            // 更新效能預測
+            const currentPerformance = calculateSystemPerformance();
+            const predictedPerformance = Math.min(currentPerformance + 7, 100);
+            
+            document.getElementById('current-performance').textContent = `${currentPerformance}%`;
+            document.getElementById('predicted-performance').textContent = `${predictedPerformance}%`;
+            document.getElementById('current-performance-bar').style.width = `${currentPerformance}%`;
+            document.getElementById('predicted-performance-bar').style.width = `${predictedPerformance}%`;
+            
+            const optimizationPotential = predictedPerformance - currentPerformance;
+            document.getElementById('optimization-potential').textContent = `${optimizationPotential}%`;
+            document.getElementById('optimization-potential-bar').style.width = `${optimizationPotential * 10}%`;
+            
+            // 更新預算條
+            document.getElementById('optimization-budget-fill').style.width = `${budgetUsage}%`;
+            
+            // 更新總預算顯示
+            document.getElementById('total-budget').textContent = totalBudget.toLocaleString();
+        }
+        
+        // 更新優化建議
+        function updateOptimizationTips() {
+            const tipsList = document.getElementById('optimization-tips-list');
+            const predictionList = document.getElementById('prediction-details-list');
+            
+            if (!tipsList || !predictionList) return;
+            
+            tipsList.innerHTML = '';
+            predictionList.innerHTML = '';
+            
+            const currentEnergy = sensors.reduce((sum, sensor) => sum + sensor.energy, 0);
+            const sensorCount = sensors.length;
+            const budgetUsage = (usedBudget / totalBudget) * 100;
+            
+            // 生成優化建議
+            const tips = [];
+            const predictions = [];
+            
+            if (currentEnergy > 3) {
+                tips.push('<li>啟用所有感測器的節能模式</li>');
+                predictions.push('<li>能源消耗降低 15-20%</li>');
+            }
+            
+            if (sensorCount > 10) {
+                tips.push('<li>合併相鄰的溫度感測器</li>');
+                predictions.push('<li>維護成本減少 10%</li>');
+            }
+            
+            if (budgetUsage > 70) {
+                tips.push('<li>暫停非關鍵感測器的數據傳輸</li>');
+                predictions.push('<li>預算使用降低 15%</li>');
+            }
+            
+            const lowBatterySensors = sensors.filter(s => s.battery < 50);
+            if (lowBatterySensors.length > 0) {
+                tips.push(`<li>為 ${lowBatterySensors.length} 個低電量感測器充電</li>`);
+                predictions.push('<li>系統穩定性提高 8%</li>');
+            }
+            
+            const lowSignalSensors = sensors.filter(s => s.signal < 70);
+            if (lowSignalSensors.length > 0) {
+                tips.push(`<li>檢查 ${lowSignalSensors.length} 個低信號感測器的網絡連接</li>`);
+                predictions.push('<li>數據準確率提高 12%</li>');
+            }
+            
+            if (tips.length === 0) {
+                tips.push('<li>系統已優化良好，保持當前配置</li>');
+                predictions.push('<li>繼續監控系統狀態</li>');
+            }
+            
+            tipsList.innerHTML = tips.join('');
+            predictionList.innerHTML = predictions.join('');
+        }
+        
+        // 計算系統效能
+        function calculateSystemPerformance() {
+            let performance = 85; // 基礎效能
+            
+            // 基於感測器狀態調整
+            const activeSensors = sensors.filter(s => s.status === 'active').length;
+            const totalSensors = sensors.length;
+            const activeRatio = totalSensors > 0 ? activeSensors / totalSensors : 1;
+            performance += (activeRatio * 10) - 5;
+            
+            // 基於電量調整
+            const avgBattery = sensors.length > 0 ? 
+                sensors.reduce((sum, s) => sum + s.battery, 0) / sensors.length : 100;
+            performance += (avgBattery / 100) * 5;
+            
+            // 基於預算使用調整
+            const budgetUsage = (usedBudget / totalBudget) * 100;
+            if (budgetUsage > 90) performance -= 15;
+            else if (budgetUsage > 70) performance -= 8;
+            else if (budgetUsage < 30) performance += 5;
+            
+            // 基於能源效率調整
+            const currentEnergy = sensors.reduce((sum, sensor) => sum + sensor.energy, 0);
+            const optimalEnergy = sensors.length * 0.4; // 假設每個感測器最佳能耗0.4kW
+            const energyEfficiency = optimalEnergy > 0 ? (optimalEnergy / currentEnergy) * 100 : 100;
+            performance += (energyEfficiency - 100) / 10;
+            
+            return Math.max(60, Math.min(100, Math.round(performance)));
+        }
+        
+        // 更新統計數據
+        function updateStats() {
+            // 計算統計數據
+            const sensorCount = sensors.length;
+            
+            // 計算總成本和能源消耗
+            let totalSensorCost = 0;
+            let totalEnergy = 0;
+            
+            sensors.forEach(sensor => {
+                totalSensorCost += sensor.cost;
+                totalEnergy += sensor.energy;
+            });
+            
+            // 計算維護成本（感測器成本的25%）
+            const maintenanceCost = totalSensorCost * 0.25;
+            usedBudget = totalSensorCost + maintenanceCost;
+            
+            // 計算預算使用率
+            const budgetUsage = totalBudget > 0 ? (usedBudget / totalBudget) * 100 : 0;
+            
+            // 計算系統效能和負載
+            const efficiency = calculateSystemPerformance();
+            const systemLoad = calculateSystemLoad();
+            
+            // 更新UI
+            document.getElementById('sensor-count').textContent = sensorCount;
+            document.getElementById('system-efficiency').textContent = `${efficiency}%`;
+            document.getElementById('budget-usage').textContent = `${Math.round(budgetUsage)}%`;
+            document.getElementById('energy-consumption').textContent = `${totalEnergy.toFixed(1)}kW`;
+            document.getElementById('system-load').textContent = `${systemLoad}%`;
+            
+            // 更新預算條
+            document.getElementById('budget-fill').style.width = `${budgetUsage}%`;
+            document.getElementById('budget-used').textContent = `$${Math.round(usedBudget)}`;
+            
+            // 更新系統負載條顏色
+            const systemLoadBar = document.getElementById('system-load-bar');
+            systemLoadBar.style.width = `${systemLoad}%`;
+            if (systemLoad > 80) {
+                systemLoadBar.className = 'progress-fill danger';
+            } else if (systemLoad > 60) {
+                systemLoadBar.className = 'progress-fill warning';
+            } else {
+                systemLoadBar.className = 'progress-fill good';
+            }
+            
+            // 隨機更新感測器狀態（模擬真實環境）
+            sensors.forEach(sensor => {
+                // 電量自然消耗
+                if (Math.random() > 0.7) {
+                    sensor.battery = Math.max(0, sensor.battery - Math.random() * 3);
+                    if (sensor.battery < 20 && sensor.status === 'active') {
+                        sensor.status = 'warning';
+                        addAlert({
+                            type: 'warning',
+                            title: `${sensor.name} 電量低`,
+                            message: `電量僅剩 ${sensor.battery.toFixed(0)}%，請充電`,
+                            sensorId: sensor.id,
+                            resolved: false
+                        });
+                    }
+                }
+                
+                // 信號強度波動
+                if (Math.random() > 0.8) {
+                    const change = (Math.random() - 0.5) * 10;
+                    sensor.signal = Math.max(30, Math.min(100, sensor.signal + change));
+                    
+                    if (sensor.signal < 60 && sensor.status === 'active') {
+                        sensor.status = 'warning';
+                        addAlert({
+                            type: 'warning',
+                            title: `${sensor.name} 信號弱`,
+                            message: `信號強度 ${sensor.signal.toFixed(0)}%，可能影響數據傳輸`,
+                            sensorId: sensor.id,
+                            resolved: false
+                        });
+                    }
+                }
+                
+                // 更新最後更新時間
+                if (Math.random() > 0.5) {
+                    sensor.lastUpdate = new Date();
+                }
+            });
+            
+            // 更新其他頁面
+            if (currentPage === 'data') {
+                updateSensorChart();
+                updatePerformanceMetrics();
+                updateDistributionChart();
+            }
+            
+            if (currentPage === 'optimization') {
+                updateOptimizationPage();
+                updateOptimizationTips();
+            }
+        }
+        
+        // 獲取感測器圖標
+        function getSensorIcon(type) {
+            switch(type) {
+                case 'temperature': return 'fas fa-thermometer-half';
+                case 'traffic': return 'fas fa-traffic-light';
+                case 'energy': return 'fas fa-bolt';
+                case 'security': return 'fas fa-shield-alt';
+                case 'water': return 'fas fa-tint';
+                case 'air': return 'fas fa-wind';
+                case 'waste': return 'fas fa-trash-alt';
+                default: return 'fas fa-microchip';
+            }
+        }
+        
+        // 獲取感測器名稱
+        function getSensorName(type) {
+            switch(type) {
+                case 'temperature': return '溫度感測器';
+                case 'traffic': return '交通感測器';
+                case 'energy': return '能源感測器';
+                case 'security': return '安全監控';
+                case 'water': return '水質監測';
+                case 'air': return '空氣品質';
+                case 'waste': return '廢物管理';
+                default: return '感測器';
+            }
+        }
+        
+        // 獲取狀態文字
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return '運作中';
+                case 'warning': return '警告';
+                case 'inactive': return '離線';
+                default: return '未知';
+            }
+        }
+        
+        // 獲取位置名稱
+        function getLocationName(location) {
+            switch(location) {
+                case 'residential': return '住宅區';
+                case 'commercial': return '商業區';
+                case 'industrial': return '工業區';
+                case 'park': return '公園區域';
+                case 'transportation': return '交通樞紐';
+                default: return '未指定';
+            }
+        }
+        
+        // 獲取警報圖標
+        function getAlertIcon(type) {
+            switch(type) {
+                case 'warning': return 'fa-exclamation-triangle';
+                case 'danger': return 'fa-exclamation-circle';
+                case 'info': return 'fa-info-circle';
+                default: return 'fa-bell';
+            }
+        }
+        
+        // 格式化時間
+        function formatTime(date) {
+            if (!(date instanceof Date)) date = new Date(date);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return '剛剛';
+            if (diffMins < 60) return `${diffMins}分鐘前`;
+            if (diffHours < 24) return `${diffHours}小時前`;
+            if (diffDays < 7) return `${diffDays}天前`;
+            return date.toLocaleDateString('zh-TW');
+        }
+        
+        // 為感測器列表項目添加拖動功能
+        document.querySelectorAll('.sensor-item').forEach(item => {
+            item.setAttribute('draggable', 'true');
+            
+            item.addEventListener('dragstart', function(e) {
+                const type = this.dataset.type;
+                const cost = this.dataset.cost;
+                const energy = this.dataset.energy;
+                
+                e.dataTransfer.setData('sensorType', type);
+                e.dataTransfer.setData('sensorCost', cost);
+                e.dataTransfer.setData('sensorEnergy', energy);
+            });
+        });
+        
+        // 顯示通知
+        function showNotification(message, type = 'info') {
+            // 檢查是否已有相同通知
+            const existingNotifications = document.querySelectorAll('.notification');
+            if (existingNotifications.length > 3) {
+                existingNotifications[0].remove();
+            }
+            
+            // 創建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'notification-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', function() {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            });
+            
+            notification.appendChild(messageSpan);
+            notification.appendChild(closeBtn);
+            
+            document.body.appendChild(notification);
+            
+            // 顯示通知
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // 5秒後自動移除通知
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+        
+        // 事件監聽器
+        document.getElementById('start-simulation').addEventListener('click', function() {
+            document.querySelector('[data-page="city"]').click();
+            showNotification('歡迎使用智慧城市模擬器！開始部署您的第一個感測器吧。', 'success');
+        });
+        
+        document.getElementById('reset-city').addEventListener('click', function() {
+            if (confirm('確定要重置城市嗎？所有感測器將被移除，預算重置為$3,000。')) {
+                sensors = [];
+                totalBudget = 3000;
+                usedBudget = 0;
+                totalEnergy = 0;
+                systemAlerts = [];
+                optimizationHistory = [];
+                challenges = {
+                    cityPlanner: {completed: false, progress: 0, total: 5, rewarded: false},
+                    energyExpert: {completed: false, progress: 0, target: 2.0, rewarded: false},
+                    sensorMaster: {completed: false, progress: 0, total: 5, rewarded: false}
+                };
+                initializeCityGrid();
+                updateStats();
+                updateChallenges();
+                updateAlertsDisplay();
+                showNotification('城市已重置！您可以重新開始部署感測器。', 'info');
+            }
+        });
+        
+        document.getElementById('add-sensor-btn').addEventListener('click', function() {
+            sensorModal.classList.add('active');
+        });
+        
+        closeModalBtn.addEventListener('click', function() {
+            sensorModal.classList.remove('active');
+        });
+        
+        closeDetailModalBtn.addEventListener('click', function() {
+            sensorDetailModal.classList.remove('active');
+        });
+        
+        cancelSensorBtn.addEventListener('click', function() {
+            sensorModal.classList.remove('active');
+        });
+        
+        // 感測器類型選擇時更新預覽
+        sensorTypeSelect.addEventListener('change', function() {
+            const type = this.value;
+            if (!type) return;
+            
+            let cost = 120;
+            let energy = 0.3;
+            
+            switch(type) {
+                case 'temperature':
+                    cost = 120;
+                    energy = 0.3;
+                    break;
+                case 'traffic':
+                    cost = 200;
+                    energy = 0.5;
+                    break;
+                case 'energy':
+                    cost = 180;
+                    energy = 0.4;
+                    break;
+                case 'security':
+                    cost = 250;
+                    energy = 0.6;
+                    break;
+                case 'water':
+                    cost = 220;
+                    energy = 0.4;
+                    break;
+                case 'air':
+                    cost = 190;
+                    energy = 0.35;
+                    break;
+                case 'waste':
+                    cost = 170;
+                    energy = 0.3;
+                    break;
+            }
+            
+            const config = document.getElementById('sensor-config');
+            const dataRate = config ? parseInt(config.value) : 30;
+            const costMultiplier = dataRate / 30;
+            const energyMultiplier = dataRate / 30;
+            
+            const finalCost = Math.round(cost * costMultiplier);
+            const finalEnergy = parseFloat((energy * energyMultiplier).toFixed(2));
+            
+            costPreview.textContent = `$${finalCost}`;
+            energyPreview.textContent = `${finalEnergy}kW`;
+        });
+        
+        // 取樣率選擇時更新預覽
+        document.getElementById('sensor-config').addEventListener('change', function() {
+            const type = sensorTypeSelect.value;
+            if (!type) return;
+            
+            let cost = 120;
+            let energy = 0.3;
+            
+            switch(type) {
+                case 'temperature':
+                    cost = 120;
+                    energy = 0.3;
+                    break;
+                case 'traffic':
+                    cost = 200;
+                    energy = 0.5;
+                    break;
+                case 'energy':
+                    cost = 180;
+                    energy = 0.4;
+                    break;
+                case 'security':
+                    cost = 250;
+                    energy = 0.6;
+                    break;
+                case 'water':
+                    cost = 220;
+                    energy = 0.4;
+                    break;
+                case 'air':
+                    cost = 190;
+                    energy = 0.35;
+                    break;
+                case 'waste':
+                    cost = 170;
+                    energy = 0.3;
+                    break;
+            }
+            
+            const dataRate = parseInt(this.value);
+            const costMultiplier = dataRate / 30;
+            const energyMultiplier = dataRate / 30;
+            
+            const finalCost = Math.round(cost * costMultiplier);
+            const finalEnergy = parseFloat((energy * energyMultiplier).toFixed(2));
+            
+            costPreview.textContent = `$${finalCost}`;
+            energyPreview.textContent = `${finalEnergy}kW`;
+        });
+        
+        sensorForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const type = sensorTypeSelect.value;
+            if (!type) {
+                showNotification('請選擇感測器類型', 'warning');
+                return;
+            }
+            
+            // 尋找空閒位置
+            let placed = false;
+            const cells = document.querySelectorAll('.grid-cell:not(.occupied)');
+            if (cells.length > 0) {
+                const randomCell = cells[Math.floor(Math.random() * cells.length)];
+                const x = parseInt(randomCell.dataset.x);
+                const y = parseInt(randomCell.dataset.y);
+                
+                const success = addNewSensor(type, 0, 0, x, y);
+                
+                if (success) {
+                    // 關閉模態框
+                    sensorModal.classList.remove('active');
+                    
+                    // 重置表單
+                    this.reset();
+                    
+                    // 重置預覽
+                    costPreview.textContent = '$120';
+                    energyPreview.textContent = '0.3kW';
+                }
+            } else {
+                showNotification('城市地圖已滿！請先刪除一些感測器。', 'warning');
+            }
+        });
+        
+        document.getElementById('refresh-data').addEventListener('click', function() {
+            // 模擬數據刷新
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> 刷新中...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                updateSensorChart();
+                updateEnergyChart();
+                updatePerformanceMetrics();
+                updateDistributionChart();
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                showNotification('數據已刷新！', 'success');
+            }, 1000);
+        });
+        
+        document.getElementById('export-data').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> 導出中...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                // 創建可導出的數據
+                const exportData = {
+                    sensors: sensors,
+                    stats: {
+                        totalBudget: totalBudget,
+                        usedBudget: usedBudget,
+                        totalEnergy: sensors.reduce((sum, s) => sum + s.energy, 0),
+                        sensorCount: sensors.length,
+                        efficiency: calculateSystemPerformance(),
+                        load: calculateSystemLoad()
+                    },
+                    alerts: systemAlerts.filter(a => !a.resolved),
+                    challenges: challenges,
+                    gameMode: currentGameMode,
+                    timestamp: new Date().toISOString(),
+                    version: '2.0'
+                };
+                
+                // 創建JSON文件
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                // 創建下載連結
+                const url = URL.createObjectURL(dataBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `智慧城市數據_${new Date().toISOString().slice(0,10)}_${new Date().getHours()}${new Date().getMinutes()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                showNotification('數據已導出為JSON文件！', 'success');
+            }, 1500);
+        });
+        
+        document.getElementById('run-optimization').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> 優化中...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                // 模擬優化過程
+                const originalPerformance = calculateSystemPerformance();
+                
+                // 隨機應用一些優化
+                let optimizations = 0;
+                sensors.forEach(sensor => {
+                    // 隨機降低一些感測器的取樣率
+                    if (Math.random() > 0.6 && sensor.dataRate > 10) {
+                        const oldRate = sensor.dataRate;
+                        sensor.dataRate = Math.max(10, sensor.dataRate - Math.floor(Math.random() * 20));
+                        sensor.energy = sensor.energy * (sensor.dataRate / oldRate);
+                        optimizations++;
+                        
+                        addAlert({
+                            type: 'info',
+                            title: `${sensor.name} 取樣率優化`,
+                            message: `取樣率從 ${oldRate} 調整為 ${sensor.dataRate} 次/小時`,
+                            sensorId: sensor.id,
+                            resolved: true
+                        });
+                    }
+                    
+                    // 隨機修復一些警告狀態
+                    if (sensor.status === 'warning' && Math.random() > 0.7) {
+                        sensor.status = 'active';
+                        optimizations++;
+                        
+                        addAlert({
+                            type: 'success',
+                            title: `${sensor.name} 狀態恢復`,
+                            message: '感測器狀態已恢復正常',
+                            sensorId: sensor.id,
+                            resolved: true
+                        });
+                    }
+                });
+                
+                // 記錄優化歷史
+                const newPerformance = calculateSystemPerformance();
+                const improvement = newPerformance - originalPerformance;
+                
+                optimizationHistory.push({
+                    timestamp: new Date(),
+                    originalPerformance: originalPerformance,
+                    newPerformance: newPerformance,
+                    improvement: improvement,
+                    optimizations: optimizations
+                });
+                
+                // 保持最多5條歷史記錄
+                if (optimizationHistory.length > 5) {
+                    optimizationHistory.shift();
+                }
+                
+                // 更新所有顯示
+                updateStats();
+                updateOptimizationPage();
+                updateOptimizationTips();
+                updateAlertsDisplay();
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                showNotification(`系統優化完成！執行了 ${optimizations} 項優化，效能從 ${originalPerformance}% 提升至 ${newPerformance}%`, 'success');
+            }, 2000);
+        });
+        
+        document.getElementById('add-budget').addEventListener('click', function() {
+            const additionalBudget = 1000;
+            totalBudget += additionalBudget;
+            
+            // 記錄預算增加
+            addAlert({
+                type: 'info',
+                title: '預算增加',
+                message: `預算增加了 $${additionalBudget.toLocaleString()}`,
+                resolved: true
+            });
+            
+            updateStats();
+            showNotification(`預算已增加 $${additionalBudget.toLocaleString()}！總預算現為 $${totalBudget.toLocaleString()}`, 'success');
+        });
+        
+        document.getElementById('view-all-alerts').addEventListener('click', function() {
+            if (systemAlerts.length === 0) {
+                showNotification('目前沒有系統警報', 'info');
+                return;
+            }
+            
+            let alertDetails = '系統警報記錄：\n\n';
+            systemAlerts.forEach((alert, index) => {
+                alertDetails += `${index + 1}. [${alert.type.toUpperCase()}] ${alert.title}\n`;
+                alertDetails += `    ${alert.message}\n`;
+                alertDetails += `    ${formatTime(alert.timestamp)}\n`;
+                alertDetails += `    ${alert.resolved ? '✓ 已處理' : '○ 待處理'}\n\n`;
+            });
+            
+            alert(alertDetails);
+        });
+        
+        // 數據週期選擇事件
+        document.getElementById('data-period').addEventListener('change', function() {
+            const periodText = this.options[this.selectedIndex].text;
+            showNotification(`已切換到${periodText}數據視圖`, 'info');
+            updateSensorChart();
+        });
+        
+        // 點擊模態框外部關閉
+        window.addEventListener('click', function(e) {
+            if (e.target === sensorModal) {
+                sensorModal.classList.remove('active');
+            }
+            if (e.target === sensorDetailModal) {
+                sensorDetailModal.classList.remove('active');
+            }
+            if (e.target === guideModal) {
+                guideModal.classList.remove('active');
+            }
+        });
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCityGrid();
+            initializeAlerts();
+            updateStats();
+            updateOptimizationPage();
+            updateOptimizationTips();
+            updateChallenges();
+            
+            // 初始化系統警報
+            systemAlerts = [
+                {
+                    id: 1,
+                    type: 'warning',
+                    title: '區域A能源消耗過高',
+                    message: '建議檢查溫度感測器配置',
+                    timestamp: new Date(Date.now() - 3600000),
+                    sensorId: 1,
+                    resolved: false
+                },
+                {
+                    id: 2,
+                    type: 'info',
+                    title: '交通感測器需要校準',
+                    message: '計劃維護時間: 明天 02:00-04:00',
+                    timestamp: new Date(Date.now() - 7200000),
+                    sensorId: 2,
+                    resolved: false
+                },
+                {
+                    id: 3,
+                    type: 'danger',
+                    title: '安全監控系統離線',
+                    message: '需要立即檢查網絡連接',
+                    timestamp: new Date(Date.now() - 1800000),
+                    sensorId: 4,
+                    resolved: false
+                }
+            ];
+            updateAlertsDisplay();
+            
+            // 模擬初始警報
+            setTimeout(() => {
+                addAlert({
+                    type: 'info',
+                    title: '系統初始化完成',
+                    message: '智慧城市模擬器已準備就緒',
+                    resolved: true
+                });
+            }, 2000);
+            
+            // 顯示歡迎消息
+            setTimeout(() => {
+                showNotification('歡迎使用IoT智慧城市模擬器！點擊「平台操作指南」了解詳細玩法。', 'info');
+            }, 1000);
+            
+            // 模擬定期系統更新
+            setInterval(() => {
+                if (currentPage === 'city' || currentPage === 'data' || currentPage === 'optimization') {
+                    updateStats();
+                    updateChallenges();
+                }
+            }, 30000); // 每30秒更新一次
+        });
+    </script>
+</body>
+</html>
